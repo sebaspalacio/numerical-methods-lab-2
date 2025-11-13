@@ -62,6 +62,10 @@
     .drawer{ position: fixed; top:0; right:-420px; width:420px; max-width:90vw; height:100vh; background: var(--c-card); border-left:1px solid #e5e7eb; box-shadow:-20px 0 40px rgba(24,33,47,.08); transition:right .25s ease; z-index:50; }
     .drawer.open{ right:0; }
     .drawer-header{ display:flex; align-items:center; justify-content:space-between; gap:.5rem; padding: .6rem .8rem; border-bottom:1px solid #e5e7eb; position: sticky; top:0; background:linear-gradient(180deg,#fff, #fff0); }
+  
+    /* Gaussian steps styling (from index (1).txt) */
+    .table .pivot { background:#fef3c7; font-weight:700; } /* amber */
+    .table .diag  { background:#ecfeff; }                  /* cyan */
   </style>
 </head>
 <body class="min-h-screen">
@@ -119,36 +123,36 @@
       <div class="grid-2">
         <div>
           <h2 class="text-lg font-semibold mb-3">Inputs — Root Finding</h2>
-
+          <!-- NEW: Defaults from Prueba_metodos.pdf -->
           <label class="block text-sm font-semibold mb-1">Function f(x)</label>
-          <input id="fxInput" class="input" value="x**3 - 7*x + 6" placeholder="Example: x**3 - 7*x + 6" />
+          <input id="fxInput" class="input" value="log(sin(x)**2 + 1) - 0.5" placeholder="Example: x**3 - 7*x + 6" />
           <p class="hint mb-3">Allowed: numbers, x, +, -, *, /, **, parentheses, and Math functions (sin, cos, exp, log, sqrt...)</p>
 
           <div id="gxGroup" class="hidden">
             <label class="block text-sm font-semibold mb-1">Function g(x) (for Fixed Point)</label>
-            <input id="gxInput" class="input" value="(x**3 + 6) / 7" placeholder="e.g., (x**3 + 6) / 7" />
+            <input id="gxInput" class="input" value="log(sin(x)**2 + 1) - 0.5" placeholder="e.g., (x**3 + 6) / 7" />
             <p class="hint mb-3">Tip: g(x) must be a contractive mapping in your interval.</p>
           </div>
 
           <div id="dfGroup" class="hidden">
             <label class="block text-sm font-semibold mb-1">Derivative f'(x) (optional)</label>
-            <input id="dfInput" class="input" value="3*x**2 - 7" placeholder="Example: 3*x**2 - 7"/>
+            <input id="dfInput" class="input" value="2*(sin(x)**2+1)**(-1)*sin(x)*cos(x)" placeholder="Example: 3*x**2 - 7"/>
             <p class="hint mb-3">If provided, Newton's method will use this analytic derivative.</p>
           </div>
           <div id="d2fGroup" class="hidden">
             <label class="block text-sm font-semibold mb-1">Second Derivative f''(x) (optional)</label>
-            <input id="d2fInput" class="input" value="6*x" placeholder="Example: 6*x"/>
-            <p class="hint mb-3">Required for the Multiple Roots method.</p>
+            <input id="d2fInput" class="input" value="exp(x)" placeholder="Example: 6*x"/>
+            <p class="hint mb-3">Required for the Multiple Roots method. (e.g., for h(x) = exp(x)-x-1)</p>
           </div>
 
           <div class="grid grid-cols-2 gap-3">
             <div>
               <label class="block text-sm font-semibold mb-1">Interval Start (a)</label>
-              <input id="aInput" type="number" class="input" value="1.5"/>
+              <input id="aInput" type="number" class="input" value="0"/>
             </div>
             <div>
               <label class="block text-sm font-semibold mb-1">Interval End (b)</label>
-              <input id="bInput" type="number" class="input" value="2.5"/>
+              <input id="bInput" type="number" class="input" value="1"/>
             </div>
           </div>
           <p class="hint mb-3">The interval [a, b] is used for bracketing methods and plotting. Must satisfy a &lt; b.</p>
@@ -157,7 +161,7 @@
           <div id="deltaGroup" class="grid grid-cols-2 gap-3 mt-3 hidden">
             <div>
               <label class="block text-sm font-semibold mb-1">Delta (Δ)</label>
-              <input id="deltaInput" type="number" class="input" value="0.5" step="0.1"/>
+              <input id="deltaInput" type="number" class="input" value="0.1" step="0.1"/>
             </div>
             <div>
               <label class="block text-sm font-semibold mb-1">Max Steps</label>
@@ -168,11 +172,11 @@
           <div id="x0x1Group" class="grid grid-cols-2 gap-3 mt-3">
             <div>
               <label class="block text-sm font-semibold mb-1">Initial Guess (x₀)</label>
-              <input id="x0Input" type="number" class="input" value="1.5"/>
+              <input id="x0Input" type="number" class="input" value="0.5"/>
             </div>
             <div id="x1Col" class="hidden">
               <label class="block text-sm font-semibold mb-1">Second Guess (x₁)</label>
-              <input id="x1Input" type="number" class="input" value="2.5"/>
+              <input id="x1Input" type="number" class="input" value="1"/>
             </div>
           </div>
 
@@ -219,7 +223,7 @@
           <label class="block text-sm font-semibold mt-3 mb-1">Vector b</label>
           <input id="bVecInputDirect" class="input" value="1 1 1" />
           
-          <p class="hint mt-3">For Cholesky, ensure A is symmetric and positive-definite.</p>
+          <p class="hint mt-3">Hint: The default matrix is symmetric positive-definite, valid for all direct methods.</p>
         </div>
         <div>
           <h2 class="text-lg font-semibold mb-3">Status & Guidance</h2>
@@ -228,6 +232,17 @@
       </div>
       <div id="resultsDirect" class="mt-6">
         <!-- Results (L, U, x) will be inserted here -->
+        
+        <!-- NEW: Step viewer for Gaussian methods -->
+        <div id="stepsBox" class="mt-4 hidden">
+          <h3 class="text-lg font-semibold mb-2">Elimination Steps (Augmented Matrix)</h3>
+          <div class="flex items-center gap-3 mb-2">
+            <button id="prevStepBtn" class="btn btn-soft">Prev</button>
+            <div id="stepIndicator" class="hint">Step 1 / 1</div>
+            <button id="nextStepBtn" class="btn btn-soft">Next</button>
+          </div>
+          <div id="stepMatrix" class="table-wrapper rounded-xl border border-gray-200"></div>
+        </div>
       </div>
     </section>
 
@@ -284,6 +299,7 @@
           <h2 class="text-lg font-semibold mb-3">Inputs — Interpolation</h2>
           
           <label class="block text-sm font-semibold mb-1">Data Points (x, y)</label>
+          <!-- NEW: Defaults from Prueba_metodos2.pdf -->
           <textarea id="pointsInput" class="input" rows="8">-1, 15.5
 0, 3
 3, 8
@@ -372,6 +388,13 @@ const AInputDirect = document.getElementById('AInputDirect');
 const bVecInputDirect = document.getElementById('bVecInputDirect');
 const summaryDirect = document.getElementById('summaryDirect');
 const resultsDirect = document.getElementById('resultsDirect');
+// NEW: Step viewer refs
+const stepsBox = document.getElementById('stepsBox');
+const stepMatrix = document.getElementById('stepMatrix');
+const stepIndicator = document.getElementById('stepIndicator');
+const prevStepBtn = document.getElementById('prevStepBtn');
+const nextStepBtn = document.getElementById('nextStepBtn');
+
 
 // Iterative Systems Refs
 const AInputIter = document.getElementById('AInputIter');
@@ -411,12 +434,16 @@ const METHODS = {
     { value: 'secant',        label: 'Secant' },
     { value: 'multiple',      label: 'Multiple Roots (Mod. Newton)' },
   ],
+  // NEW: Added Gaussian methods and renamed LU methods
   direct: [
-    { value: 'lu_gaussian', label: 'Gaussian Elimination (Simple LU)' },
-    { value: 'lu_partial_pivot', label: 'Gaussian Elimination (Partial Pivot)' },
-    { value: 'doolittle', label: 'Doolittle' },
-    { value: 'crout', label: 'Crout' },
-    { value: 'cholesky', label: 'Cholesky' }
+    { value: 'gauss_simple',     label: 'Gaussian Elimination (Simple)' },
+    { value: 'gauss_partial',    label: 'Gaussian Elimination (Partial Pivot)' },
+    { value: 'gauss_total',      label: 'Gaussian Elimination (Total Pivot)' },
+    { value: 'lu_gaussian',      label: 'LU Factorization (Simple)' },
+    { value: 'lu_partial_pivot', label: 'LU Factorization (Partial Pivot)' },
+    { value: 'doolittle',        label: 'Doolittle (LU)' },
+    { value: 'crout',            label: 'Crout (LU)' },
+    { value: 'cholesky',         label: 'Cholesky (LLT)' }
   ],
   iterative: [
     { value: 'jacobi', label: 'Jacobi' },
@@ -435,7 +462,7 @@ const METHODS = {
 
 // UX Guides for each method
 const METHOD_GUIDES = {
-  // Root Finding Guides
+  // Root Finding Guides (unchanged)
   incremental: { 
     title: 'Incremental Search Guide', 
     body: [
@@ -493,25 +520,50 @@ const METHOD_GUIDES = {
     ]
   },
   
-  // Direct Systems Guides
+  // Direct Systems Guides (NEW/UPDATED)
+  gauss_simple: {
+    title: 'Gaussian Elimination (Simple)',
+    body: [
+        '**Inputs:** Matrix A, Vector b.',
+        '**Goal:** Solves Ax=b by transforming the augmented matrix [A|b] to [U|c].',
+        '**Result:** Shows the step-by-step elimination process. Fails if a zero pivot is encountered.'
+    ]
+  },
+  gauss_partial: {
+    title: 'Gaussian Elimination (Partial Pivot)',
+    body: [
+        '**Inputs:** Matrix A, Vector b.',
+        '**Goal:** Solves Ax=b by swapping rows to use the largest-magnitude pivot in the column.',
+        '**Result:** Shows the step-by-step elimination process, including row swaps. This is a stable method.'
+    ]
+  },
+  gauss_total: {
+    title: 'Gaussian Elimination (Total Pivot)',
+    body: [
+        '**Inputs:** Matrix A, Vector b.',
+        '**Goal:** Solves Ax=b by swapping rows *and* columns to use the largest-magnitude pivot in the submatrix.',
+        '**Result:** The most stable Gaussian method. Shows all steps and permutations.'
+    ]
+  },
   lu_gaussian: { 
-    title: 'Gaussian Elimination (Simple LU)', 
+    title: 'LU Factorization (Simple)', 
     body: [
         '**Inputs:** Matrix A, Vector b.',
         '**Goal:** Solves Ax=b by finding L and U (A=LU).',
-        '**Theorem:** Fails if a zero pivot is encountered. This method is algorithmically unstable. **Partial Pivoting is recommended.**'
+        '**Result:** Shows the final L and U matrices. This is the *result* of Gaussian elimination, but stored as matrices.',
+        '**Theorem:** Fails if a zero pivot is encountered.'
     ] 
   },
   lu_partial_pivot: { 
-    title: 'Gaussian Elimination (Partial Pivot)', 
+    title: 'LU Factorization (Partial Pivot)', 
     body: [
         '**Inputs:** Matrix A, Vector b.',
-        '**Goal:** Solves Ax=b (PA=LU) by swapping rows to use the largest-magnitude pivot.',
-        '**Condition:** This is a stable and robust method. It will only fail if the matrix is singular (determinant = 0).'
+        '**Goal:** Solves Ax=b by finding L, U, and P (PA=LU).',
+        '**Result:** Shows the final L, U, and P (Permutation) matrices. This is a stable and robust method.'
     ] 
   },
   doolittle: { 
-    title: 'Doolittle Factorization', 
+    title: 'Doolittle (LU) Factorization', 
     body: [
         '**Inputs:** Matrix A, Vector b.',
         '**Goal:** Finds A=LU where L is unit-diagonal (1s on the diagonal).',
@@ -519,7 +571,7 @@ const METHOD_GUIDES = {
     ] 
   },
   crout: { 
-    title: 'Crout Factorization', 
+    title: 'Crout (LU) Factorization', 
     body: [
         '**Inputs:** Matrix A, Vector b.',
         '**Goal:** Finds A=LU where U is unit-diagonal (1s on the diagonal).',
@@ -527,7 +579,7 @@ const METHOD_GUIDES = {
     ] 
   },
   cholesky: { 
-    title: 'Cholesky Factorization', 
+    title: 'Cholesky (LLT) Factorization', 
     body: [
         '**Inputs:** Matrix A, Vector b.',
         '**Goal:** Finds A=LLᵀ, where L is a lower triangular matrix.',
@@ -535,7 +587,7 @@ const METHOD_GUIDES = {
     ] 
   },
   
-  // Iterative Systems Guides
+  // Iterative Systems Guides (unchanged)
   jacobi: { 
     title: 'Jacobi Method', 
     body: [
@@ -561,7 +613,7 @@ const METHOD_GUIDES = {
     ] 
   },
   
-  // Interpolation Guides
+  // Interpolation Guides (unchanged)
   vandermonde: { 
     title: 'Vandermonde Interpolation', 
     body: [
@@ -924,6 +976,26 @@ function renderTable(headers, rows, target){
   const tbody='<tbody>'+displayRows.map(r=>'\n<tr>'+r.map(c=>`<td class="num">${c}</td>`).join('')+'</tr>').join('')+'\n</tbody>';
   target.innerHTML=thead+tbody;
 }
+// NEW: Helper to render the augmented matrix step (from index (1).txt)
+function renderAugmentedMatrixHTML(Ab, kPivot=null){
+  const n = Ab.length, m = Ab[0].length;
+  let html = '<table class="table"><thead><tr>';
+  for (let j=0;j<m-1;j++) html += `<th>A[:,${j+1}]</th>`;
+  html += `<th>| b</th></tr></thead><tbody>`;
+  for (let i=0;i<n;i++){
+    html += '<tr>';
+    for (let j=0;j<m;j++){
+      const isDiag = (i===j && j<m-1);
+      const isPivot = (kPivot!==null && i===kPivot && j===kPivot);
+      const klass = isPivot ? 'pivot' : (isDiag ? 'diag' : '');
+      html += `<td class="num ${klass}">${fmt(Ab[i][j])}</td>`;
+    }
+    html += '</tr>';
+  }
+  html += '</tbody></table>';
+  return html;
+}
+
 
 // Pre-check for bracketing methods (UI)
 function scanIntervalDetailed(phi, a, b, samples = 240) {
@@ -989,6 +1061,9 @@ const NumericalMethods = {
         }
     }
   },
+  
+  // NEW: Helper from index (1).txt
+  cloneMatrix: (M) => M.map(r=>r.slice()),
 
   // --- Métodos de Búsqueda de Raíces ---
 
@@ -1068,7 +1143,7 @@ const NumericalMethods = {
     for(let k=1;k<=kmax;k++){
       const f0=phi(x0), f1=phi(x1);
       if (f1 === 0) return { steps, root:x1, err:0, k }; // Found exact root
-      const denom=f1-f0; if(Math.abs(denom)<1e-14) return { steps, error:"Denominator f(x1)-f(x0) is near zero. Pick different seeds." };
+      const denom=f1-f0; if(Math.abs(denom)<1e-14) return { steps, error:"Denominator f(x1)-f(x0) is zero. Pick different seeds." };
       const x2=x1 - f1*(x1-x0)/denom;
       if(!(x2>=Math.min(a,b) && x2<=Math.max(a,b))) return { steps, error:"Iterate left [a,b]. Try tighter seeds." };
       const err=Math.abs(x2-x1);
@@ -1098,7 +1173,7 @@ const NumericalMethods = {
     return { steps, root:x0, err:steps.at(-1)?.err, k:kmax };
   },
 
-  // --- Métodos de Sistemas Directos ---
+  // --- Métodos de Sistemas Directos (Factorización) ---
   
   lu_gaussian: (A_in) => {
     const U = deepCopy(A_in);
@@ -1247,6 +1322,57 @@ const NumericalMethods = {
     }
     return { L, U: null, etapas };
   },
+
+  // --- NEW: Métodos de Sistemas Directos (Gaussian Elimination con Pasos) ---
+  
+  eliminationWithSteps_NoPivot: (Ain, bin, tol=1e-12) => {
+    const Ab = Ain.map((r,i)=> r.concat([bin[i]]));
+    const n = Ab.length;
+    const etapas = []; for(let k=0;k<n-1;k++){
+      etapas.push({ Ab: NumericalMethods.cloneMatrix(Ab), pivot: k });
+      if(Math.abs(Ab[k][k])<=tol) throw new Error("Zero/near-zero pivot. Try Partial Pivoting.");
+      for(let i=k+1;i<n;i++){
+        const m = Ab[i][k]/Ab[k][k];
+        for(let j=k;j<=n;j++){ Ab[i][j] -= m*Ab[k][j]; }
+      }
+    }
+    etapas.push({ Ab: NumericalMethods.cloneMatrix(Ab), pivot: n-1 });
+    return { etapas, U: Ab.map(r=>r.slice(0,n)), bU: Ab.map(r=>r[n]), swaps: [] };
+  },
+  
+  eliminationWithSteps_Partial: (Ain, bin, tol=1e-12) => {
+    const Ab = Ain.map((r,i)=> r.concat([bin[i]]));
+    const n = Ab.length; const etapas = []; const swaps=[];
+    for(let k=0;k<n-1;k++){
+      etapas.push({ Ab: NumericalMethods.cloneMatrix(Ab), pivot: k });
+      let p=k, maxv=Math.abs(Ab[k][k]); for(let i=k+1;i<n;i++){ const v=Math.abs(Ab[i][k]); if(v>maxv){maxv=v;p=i;} }
+      if(maxv<=tol) throw new Error("All candidate pivots are near-zero. Matrix is singular or ill-conditioned.");
+      if(p!==k){ const tr=Ab[k]; Ab[k]=Ab[p]; Ab[p]=tr; swaps.push({type:'row', a:k, b:p}); }
+      for(let i=k+1;i<n;i++){ const m=Ab[i][k]/Ab[k][k]; for(let j=k;j<=n;j++) Ab[i][j]-=m*Ab[k][j]; }
+    }
+    etapas.push({ Ab: NumericalMethods.cloneMatrix(Ab), pivot: n-1 });
+    return { etapas, swaps, U: Ab.map(r=>r.slice(0,n)), bU: Ab.map(r=>r[n]), colPerm: null };
+  },
+  
+  eliminationWithSteps_Total: (Ain, bin, tol=1e-12) => {
+    const Ab = Ain.map((r,i)=> r.concat([bin[i]]));
+    const n = Ab.length; const etapas = []; const swaps=[]; const colPerm = Array.from({length:n},(_,i)=>i);
+    for(let k=0;k<n-1;k++){
+      etapas.push({ Ab: NumericalMethods.cloneMatrix(Ab), pivot: k });
+      let p=k,q=k,maxv=Math.abs(Ab[k][k]);
+      for(let i=k;i<n;i++) for(let j=k;j<n;j++){ const v=Math.abs(Ab[i][j]); if(v>maxv){maxv=v;p=i;q=j;} }
+      if(maxv<=tol) throw new Error("Active submatrix is near-zero. Matrix is singular or ill-conditioned.");
+      if(p!==k){ const tr=Ab[k]; Ab[k]=Ab[p]; Ab[p]=tr; swaps.push({type:'row', a:k, b:p}); }
+      if(q!==k){ 
+        for(let i=0;i<n;i++){ const t=Ab[i][k]; Ab[i][k]=Ab[i][q]; Ab[i][q]=t; } 
+        const tp=colPerm[k]; colPerm[k]=colPerm[q]; colPerm[q]=tp; swaps.push({type:'col', a:k, b:q}); 
+      }
+      for(let i=k+1;i<n;i++){ const m=Ab[i][k]/Ab[k][k]; for(let j=k;j<=n;j++) Ab[i][j]-=m*Ab[k][j]; }
+    }
+    etapas.push({ Ab: NumericalMethods.cloneMatrix(Ab), pivot: n-1 });
+    return { etapas, swaps, colPerm, U: Ab.map(r=>r.slice(0,n)), bU: Ab.map(r=>r[n]) };
+  },
+
 
   // --- Métodos de Sistemas Iterativos ---
 
@@ -1729,7 +1855,6 @@ function runRoot(){
     if (m==='incremental'){
       result = NumericalMethods.incrementalSearch(f,x0,delta,nmax);
       if(!result.bracket){ appendHTML(alertBox, msgCard('warn','Alert: No Bracket Found', [result.msg])); return; }
-      // CORREGIDO: 'ok' -> 'success' y título unificado
       setHTML(alertBox, msgCard('success','Execution Successful',[`Bracket found in [${fmt(result.bracket[0])}, ${fmt(result.bracket[1])}]`]));
       summaryHTML = `<div><b>Bracket:</b> [${fmt(result.bracket[0])}, ${fmt(result.bracket[1])}]</div>`;
       setHTML(summaryBoxRoot, summaryHTML); // Se deja un resumen simple en el panel
@@ -1813,7 +1938,6 @@ function runRoot(){
     // 4. Render results
     if(m !== 'incremental' && result.root !== undefined){
       summaryHTML = `<div><b>Root:</b> ${fmt(result.root)} &nbsp; <b>Iters:</b> ${result.k}</div>`;
-      // CORREGIDO: 'ok' -> 'success' y título unificado
       setHTML(alertBox, msgCard('success','Execution Successful',[`Root approximated ≈ ${fmt(result.root)}`,`Iterations: ${result.k}`]));
       setHTML(summaryBoxRoot, summaryHTML); // Se deja un resumen simple en el panel
       plotFx(f,a,b,itXs,'x_k');
@@ -1840,6 +1964,7 @@ function runRoot(){
 function runDirect() {
   setHTML(summaryDirect, '');
   setHTML(resultsDirect, '');
+  stepsBox.classList.add('hidden'); // Ocultar el visor de pasos al inicio
   const alertBox = getActiveAlertsBox();
   
   try {
@@ -1848,61 +1973,99 @@ function runDirect() {
     const method = methodSelect.value;
     const methodLabel = methodSelect.options[methodSelect.selectedIndex].text;
     
-    let result, L, U, P, x, b_perm;
+    let result, x, html = '';
     
-    // Execute selected method
-    if (method === 'lu_gaussian') {
-        result = NumericalMethods.lu_gaussian(A);
-        L = result.L; U = result.U;
-        const y = forwardSubstitution(L, b);
-        x = backwardSubstitution(U, y);
-    } else if (method === 'lu_partial_pivot') {
-        result = NumericalMethods.lu_partial_pivot(A);
-        L = result.L; U = result.U; P = result.P;
-        b_perm = applyPermutation(P, b);
-        const y = forwardSubstitution(L, b_perm);
-        x = backwardSubstitution(U, y);
-    } else if (method === 'doolittle') {
-        result = NumericalMethods.doolittle(A);
-        L = result.L; U = result.U;
-        const y = forwardSubstitution(L, b);
-        x = backwardSubstitution(U, y);
-    } else if (method === 'crout') {
-        result = NumericalMethods.crout(A);
-        L = result.L; U = result.U;
-        const y = forwardSubstitution(L, b);
-        x = backwardSubstitution(U, y);
-    } else if (method === 'cholesky') {
-        result = NumericalMethods.cholesky(A);
-        L = result.L;
-        const y = forwardSubstitution(L, b.map(Complex.fromReal));
-        const LT = zeros(A.length, A.length).map(r => r.map(Complex.fromReal));
-        for(let i=0; i<A.length; i++) {
-            for(let j=0; j<A.length; j++) {
-                LT[i][j] = { re: L[j][i].re, im: -L[j][i].im }; // Conjugate Transpose
-            }
+    if (method.startsWith('gauss_')) {
+        // --- GAUSSIAN ELIMINATION (con visor de pasos) ---
+        if (method === 'gauss_simple') {
+            result = NumericalMethods.eliminationWithSteps_NoPivot(A, b);
+        } else if (method === 'gauss_partial') {
+            result = NumericalMethods.eliminationWithSteps_Partial(A, b);
+        } else if (method === 'gauss_total') {
+            result = NumericalMethods.eliminationWithSteps_Total(A, b);
         }
-        x = backwardSubstitution(LT, y).map(c => c.re);
+        
+        // Solución por sustitución regresiva
+        let y = backwardSubstitution(result.U, result.bU);
+        x = Array(A.length).fill(0.0);
+        
+        // Reordenar solución si hay pivoteo total
+        if (result.colPerm) {
+            for(let j=0; j<A.length; j++) x[result.colPerm[j]] = y[j];
+        } else {
+            x = y;
+        }
+
+        html += vectorToHTML(x, 'Solution x:');
+        setHTML(resultsDirect, html);
+        
+        // Configurar el visor de pasos
+        stepsBox.classList.remove('hidden');
+        let idx = 0, E = result.etapas;
+        function paint(){ 
+            stepMatrix.innerHTML = renderAugmentedMatrixHTML(E[idx].Ab, E[idx].pivot); 
+            stepIndicator.innerHTML = `Step ${idx+1} / ${E.length}`;
+        }
+        prevStepBtn.onclick = ()=>{ idx = Math.max(0, idx-1); paint(); };
+        nextStepBtn.onclick = ()=>{ idx = Math.min(E.length-1, idx+1); paint(); };
+        paint(); // Mostrar el primer paso
+
+        // Mostrar swaps
+        if (result.swaps && result.swaps.length > 0) {
+            result.swaps.forEach(s => {
+                const msg = s.type === 'row' ? `Row swap r${s.a+1} ↔ r${s.b+1}` : `Column swap c${s.a+1} ↔ c${s.b+1}`;
+                appendHTML(summaryDirect, `<span class="badge info">${msg}</span> `);
+            });
+        }
+        
+    } else {
+        // --- LU FACTORIZATION (muestra L, U, P) ---
+        let L, U, P, b_perm;
+        
+        if (method === 'lu_gaussian') {
+            result = NumericalMethods.lu_gaussian(A);
+            L = result.L; U = result.U;
+            const y = forwardSubstitution(L, b);
+            x = backwardSubstitution(U, y);
+        } else if (method === 'lu_partial_pivot') {
+            result = NumericalMethods.lu_partial_pivot(A);
+            L = result.L; U = result.U; P = result.P;
+            b_perm = applyPermutation(P, b);
+            const y = forwardSubstitution(L, b_perm);
+            x = backwardSubstitution(U, y);
+        } else if (method === 'doolittle') {
+            result = NumericalMethods.doolittle(A);
+            L = result.L; U = result.U;
+            const y = forwardSubstitution(L, b);
+            x = backwardSubstitution(U, y);
+        } else if (method === 'crout') {
+            result = NumericalMethods.crout(A);
+            L = result.L; U = result.U;
+            const y = forwardSubstitution(L, b);
+            x = backwardSubstitution(U, y);
+        } else if (method === 'cholesky') {
+            result = NumericalMethods.cholesky(A);
+            L = result.L;
+            const y = forwardSubstitution(L, b.map(Complex.fromReal));
+            const LT = zeros(A.length, A.length).map(r => r.map(Complex.fromReal));
+            for(let i=0; i<A.length; i++) {
+                for(let j=0; j<A.length; j++) {
+                    LT[i][j] = { re: L[j][i].re, im: -L[j][i].im }; // Conjugate Transpose
+                }
+            }
+            x = backwardSubstitution(LT, y).map(c => c.re);
+        }
+        
+        // Display results
+        html += '<h3>Factorization Results</h3>';
+        if (result.L) html += matrixToHTML(result.L, 'L:');
+        if (result.U) html += matrixToHTML(result.U, 'U:');
+        if (result.P) html += matrixToHTML(result.P, 'P (Permutation):');
+        html += vectorToHTML(x, 'Solution x:');
+        setHTML(resultsDirect, html);
     }
     
-    // Display results
-    // CORREGIDO: 'ok' -> 'success'
     setHTML(alertBox, msgCard('success', 'Execution Successful', `Method: ${methodLabel}`));
-    
-    let html = '<h3>Factorization Results</h3>';
-    if (result.etapas) {
-        html += `<details open><summary class="font-semibold cursor-pointer">Show Stages (${result.etapas.length})</summary><div class="p-2 space-y-2">`;
-        result.etapas.forEach(etapa => {
-            html += `<h4>${etapa.msg}</h4>`;
-            if (etapa.L) html += matrixToHTML(etapa.L, 'L:');
-            if (etapa.U) html += matrixToHTML(etapa.U, 'U:');
-            if (etapa.P) html += matrixToHTML(etapa.P, 'P:');
-        });
-        html += `</div></details>`;
-    }
-    
-    html += vectorToHTML(x, 'Solution x:');
-    setHTML(resultsDirect, html);
     
     // Add to history
     addHist({
@@ -1952,7 +2115,6 @@ function runIterative() {
     const radius = spectralRadius(T);
     
     // Display summary
-    // CORREGIDO: 'ok' -> 'success' y título unificado
     setHTML(alertBox, msgCard('success', 'Execution Successful', `Method: ${methodLabel}. Found solution in ${k} iterations.`));
     
     // Display spectral radius and convergence
@@ -1960,7 +2122,7 @@ function runIterative() {
     if (radius < 1) {
         setHTML(spectralRadiusBox, msgCard('ok', 'Theorem Check: Converged', radiusMsg + ' (ρ(T) < 1).'));
     } else {
-        setHTML(spectralRadiusBox, msgCard('warn', 'Theorem Warning: Convergence NOT Guaranteed', radiusMsg + ' (ρ(T) ≥ 1). Result may be incorrect.'));
+        setHTML(spectralRadiusBox, msgCard('warn', 'Alert: Convergence NOT Guaranteed', radiusMsg + ' (ρ(T) ≥ 1). Result may be incorrect.'));
     }
     
     // Display iteration table
@@ -2055,7 +2217,6 @@ function runInterpolation() {
     }
     
     // Display results
-    // CORREGIDO: 'ok' -> 'success' y título unificado
     setHTML(alertBox, msgCard('success', 'Execution Successful', `Method: ${methodLabel}`));
     setHTML(resultsInter, resultHtml);
     
@@ -2151,24 +2312,26 @@ function syncVisibility() {
 function resetInputs() {
     clearAllAlerts();
     if (appMode === 'root') {
-        fxInput.value = "x**3 - 7*x + 6";
-        gxInput.value = "(x**3 + 6) / 7";
-        aInput.value = "1.5";
-        bInput.value = "2.5";
-        x0Input.value = "1.5";
-        x1Input.value = "2.5";
+        // NEW: Defaults from Prueba_metodos.pdf
+        fxInput.value = "log(sin(x)**2 + 1) - 0.5";
+        gxInput.value = "log(sin(x)**2 + 1) - 0.5"; // For f(x) = g(x) - x
+        aInput.value = "0";
+        bInput.value = "1";
+        x0Input.value = "0.5";
+        x1Input.value = "1";
         tolInput.value = "1e-7";
         kmaxInput.value = "100";
-        deltaInput.value = "0.5";
+        deltaInput.value = "0.1";
         nmaxInput.value = "100";
-        dfInput.value = "3*x**2 - 7";
-        d2fInput.value = "6*x";
+        dfInput.value = "2*(sin(x)**2+1)**(-1)*sin(x)*cos(x)";
+        d2fInput.value = "exp(x)"; // Default for h(x)
         setHTML(summaryBoxRoot, ''); setHTML(iterTableRoot, ''); setHTML(bracketBox, '');
         Plotly.purge(plotDiv);
     } else if (appMode === 'direct') {
         AInputDirect.value = "4 1 1\n1 3 2\n1 2 5";
         bVecInputDirect.value = "1 1 1";
         setHTML(summaryDirect, ''); setHTML(resultsDirect, '');
+        stepsBox.classList.add('hidden');
     } else if (appMode === 'iterative') {
         AInputIter.value = "10 1 1\n2 10 1\n2 2 10";
         bVecInputIter.value = "12 13 14";
@@ -2178,6 +2341,7 @@ function resetInputs() {
         wInputIter.value = "1.5";
         setHTML(summaryIter, ''); setHTML(spectralRadiusBox, ''); setHTML(iterTableIterative, '');
     } else if (appMode === 'interpolation') {
+        // NEW: Defaults from Prueba_metodos2.pdf
         pointsInput.value = "-1, 15.5\n0, 3\n3, 8\n4, 1";
         setHTML(summaryInter, ''); setHTML(resultsInter, '');
         Plotly.purge(plotInter);
