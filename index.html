@@ -1,0 +1,1339 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <title>Laboratorio Métodos Numéricos — Entrega 2</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <!-- Tailwind -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Plotly -->
+  <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
+  <style>
+    :root{
+      --c-bg:#fcfbff; --c-card:#ffffff; --c-ink:#18212f; --c-soft:#6b7280;
+      --c-primary:#7c3aed; --c-primary-2:#22d3ee; --c-accent:#f472b6; --rad:20px;
+    }
+    body{ background: radial-gradient(1200px 700px at 10% -20%, #fef6ff, transparent),
+                       radial-gradient(800px 600px at 110% 10%, #ecfeff, transparent),
+                       var(--c-bg); color: var(--c-ink); font-family: "Inter", sans-serif; }
+    .title{ font-weight: 900; letter-spacing: .2px; }
+    .card{ background: var(--c-card); border-radius: var(--rad); box-shadow: 0 20px 40px rgba(24,33,47,.05); padding: 1.25rem; }
+    .btn{ border-radius: 14px; padding:.6rem 1rem; font-weight:600; transition: all .15s ease; }
+    .btn-primary{ background: linear-gradient(90deg,var(--c-primary),var(--c-primary-2)); color:#fff; }
+    .btn-primary:hover{ filter: brightness(1.03); box-shadow: 0 4px 10px rgba(0,0,0,.05); }
+    .btn-soft{ background:#f3f4f6; color:#111827; }
+    .btn-soft:hover{ background:#e5e7eb; }
+    .btn[aria-pressed="true"] { filter: brightness(1.0); box-shadow: 0 2px 5px rgba(0,0,0,.1) inset; }
+    .btn[aria-pressed="false"] { filter: brightness(1.0); }
+    
+    .badge{ display:inline-block; padding:.2rem .6rem; border-radius:999px; font-size:.75rem; font-weight:700;}
+    .ok{ background:#ecfeff; color:#0e7490;}
+    .warn{ background:#fff7ed; color:#b45309;}
+    .err{ background:#fee2e2; color:#991b1b;}
+    .info{ background:#eef2ff; color:#3730a3;}
+    .recommend{ background:#e0f2fe; color:#075985;}
+
+    .input, .select, textarea{ width:100%; border:1px solid #e5e7eb; border-radius:14px; padding:.55rem .8rem; outline:none; transition: all .15s ease;}
+    .input:focus, .select:focus, textarea:focus{ box-shadow:0 0 0 3px rgba(124,58,237,.15); border-color:#ddd6fe;}
+    .hint{ color:#6b7280; font-size:.9rem;}
+    .table{ width:100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+    .table th, .table td{ border-bottom:1px solid #eef2f7; padding:.55rem .75rem; text-align:right; }
+    .table th{ color:#374151; text-align:center; font-weight: 600; background: #f9fafb; }
+    .table tr:hover td { background: #fcfbff; }
+    .num{ font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; min-width: 5.5ch; display:inline-block; text-align:right; }
+    .code{ font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; background:#f8fafc; padding:.15rem .35rem; border-radius:8px; font-size:.85rem; }
+    .matrix-display { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; white-space: pre; background: #f8fafc; padding: 0.75rem; border-radius: 12px; border: 1px solid #e5e7eb; overflow-x: auto; }
+
+    .grid-2{ display:grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+    @media (max-width: 1024px){ .grid-2{ grid-template-columns:1fr; } }
+
+    /* Message cards */
+    .msg{ border-radius: 14px; border:1px solid #e5e7eb; padding:.8rem 1rem; }
+    .msg h4{ font-weight:700; margin-bottom:.25rem; }
+    .msg p{ margin:.1rem 0; }
+  </style>
+</head>
+<body class="min-h-screen">
+  <div class="max-w-7xl mx-auto p-4 lg:p-8">
+    <!-- Encabezado -->
+    <header class="mb-6">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-2xl grid place-items-center text-xl" style="background: conic-gradient(from 180deg at 50% 50%, #fff 0deg, #fff 260deg, #f1f5f9 360deg);">AN</div>
+        <h1 class="title text-3xl">Laboratorio de Métodos Numéricos (Entrega 2)</h1>
+      </div>
+      <p class="hint mt-2">Métodos de la segunda entrega: Sistemas de Ecuaciones e Interpolación.</p>
+    </header>
+
+    <!-- Selección de Categoría y Método -->
+    <div class="card mb-6">
+      <div class="grid lg:grid-cols-4 gap-4 items-end">
+        <div>
+          <label class="block text-sm font-semibold mb-1">Categoría</label>
+          <div class="flex gap-2 flex-wrap">
+            <button id="tabDirect" class="btn btn-primary" aria-pressed="true">Sistemas Directos</button>
+            <button id="tabIterative" class="btn btn-soft" aria-pressed="false">Sistemas Iterativos</button>
+            <button id="tabInterpolation" class="btn btn-soft" aria-pressed="false">Interpolación</button>
+          </div>
+        </div>
+        <div>
+          <label class="block text-sm font-semibold mb-1">Método</label>
+          <select id="methodSelect" class="select"></select>
+        </div>
+        <div class="flex gap-2">
+          <button id="runBtn" class="btn btn-primary w-full">Ejecutar</button>
+          <button id="resetBtn" class="btn btn-soft w-full">Limpiar</button>
+        </div>
+        <div class="flex gap-2">
+          <!-- Historial y Link (funcionalidad no implementada en este ejemplo) -->
+          <button class="btn btn-soft w-full opacity-50 cursor-not-allowed">Historial</button>
+          <a class="btn btn-soft w-full opacity-50 cursor-not-allowed" href="#">Compartir Link</a>
+        </div>
+      </div>
+      <div id="guideBox" class="mt-4 msg info">
+        <h4>Guía del Método</h4>
+        <p class="hint">Seleccione un método para ver sus precondiciones y consejos aquí.</p>
+      </div>
+    </div>
+
+    <!-- PANEL: SISTEMAS DIRECTOS (LU, Crout, Doolittle, Cholesky) -->
+    <section id="directSystemPanel" class="card mb-6">
+      <div class="grid-2">
+        <div>
+          <h2 class="text-lg font-semibold mb-3">Entradas — Sistemas Directos</h2>
+          
+          <label class="block text-sm font-semibold mb-1">Matriz A (filas por línea; valores por espacio o coma)</label>
+          <textarea id="AInputDirect" class="input" rows="5">4 -1 0 3
+1 15.5 3 8
+0 -1.3 -4 1.1
+14 5 -2 30</textarea>
+
+          <label class="block text-sm font-semibold mt-3 mb-1">Vector b</label>
+          <input id="bVecInputDirect" class="input" value="1 1 1 1" />
+          
+          <p class="hint mt-3">Para Cholesky, asegúrese de que la matriz A sea simétrica y definida positiva.</p>
+        </div>
+        <div>
+          <h2 class="text-lg font-semibold mb-3">Estado y Guía</h2>
+          <div id="alertsDirect" class="space-y-2 mb-4"></div>
+          <div id="summaryDirect" class="mb-4"></div>
+        </div>
+      </div>
+      <div id="resultsDirect" class="mt-6">
+        <!-- Los resultados (L, U, x) se insertarán aquí -->
+      </div>
+    </section>
+
+    <!-- PANEL: SISTEMAS ITERATIVOS (Jacobi, Gauss-Seidel, SOR) -->
+    <section id="iterativeSystemPanel" class="card mb-6 hidden">
+      <div class="grid-2">
+        <div>
+          <h2 class="text-lg font-semibold mb-3">Entradas — Sistemas Iterativos</h2>
+          
+          <label class="block text-sm font-semibold mb-1">Matriz A</label>
+          <textarea id="AInputIter" class="input" rows="5">4 -1 0 3
+1 15.5 3 8
+0 -1.3 -4 1.1
+14 5 -2 30</textarea>
+
+          <label class="block text-sm font-semibold mt-3 mb-1">Vector b</label>
+          <input id="bVecInputIter" class="input" value="1 1 1 1" />
+          
+          <label class="block text-sm font-semibold mt-3 mb-1">Vector inicial x₀</label>
+          <input id="x0InputIter" class="input" value="0 0 0 0" />
+
+          <div class="grid grid-cols-3 gap-3 mt-3">
+            <div>
+              <label class="block text-sm font-semibold mb-1">Tolerancia</label>
+              <input id="tolInputIter" type="number" class="input" value="1e-7"/>
+            </div>
+            <div>
+              <label class="block text-sm font-semibold mb-1">Max Iter (Nmax)</label>
+              <input id="nmaxInputIter" type="number" class="input" value="100"/>
+            </div>
+            <div id="wGroupIter" class="hidden">
+              <label class="block text-sm font-semibold mb-1">ω (SOR)</label>
+              <input id="wInputIter" type="number" class="input" value="1.5"/>
+            </div>
+          </div>
+        </div>
+        <div>
+          <h2 class="text-lg font-semibold mb-3">Estado y Guía</h2>
+          <div id="alertsIter" class="space-y-2 mb-4"></div>
+          <div id="summaryIter" class="mb-4"></div>
+          <div id="spectralRadiusBox" class="mb-4"></div>
+        </div>
+      </div>
+      <div id="tableBoxIter" class="mt-6">
+        <h3 class="text-lg font-semibold mb-2">Iteraciones</h3>
+        <div class="overflow-auto rounded-xl border border-gray-200 max-h-[500px]">
+          <table id="iterTable" class="table"></table>
+        </div>
+      </div>
+    </section>
+
+    <!-- PANEL: INTERPOLACIÓN (Vandermonde, Newton, Lagrange, Splines) -->
+    <section id="interpolationPanel" class="card mb-6 hidden">
+      <div class="grid-2">
+        <div>
+          <h2 class="text-lg font-semibold mb-3">Entradas — Interpolación</h2>
+          
+          <label class="block text-sm font-semibold mb-1">Puntos (x, y)</label>
+          <textarea id="pointsInput" class="input" rows="8">-1, 15.5
+0, 3
+3, 8
+4, 1</textarea>
+          <p class="hint">Un punto (x, y) por línea, separado por coma o espacio.</p>
+        </div>
+        <div>
+          <h2 class="text-lg font-semibold mb-3">Estado y Guía</h2>
+          <div id="alertsInter" class="space-y-2 mb-4"></div>
+          <div id="summaryInter" class="mb-4"></div>
+        </div>
+      </div>
+      <div id="resultsInter" class="mt-6">
+        <!-- Los resultados (polinomio, coeficientes, tabla) se insertarán aquí -->
+      </div>
+      <div id="plotInter" class="w-full rounded-xl border border-gray-200 mt-4" style="height:420px"></div>
+    </section>
+
+    <footer class="text-sm text-gray-500 mt-8">
+      Laboratorio de Análisis Numérico — Implementación basada en archivos de curso.
+    </footer>
+  </div>
+
+<script>
+/* ================= UI Grab ================= */
+const tabDirect = document.getElementById('tabDirect');
+const tabIterative = document.getElementById('tabIterative');
+const tabInterpolation = document.getElementById('tabInterpolation');
+const methodSelect = document.getElementById('methodSelect');
+const runBtn = document.getElementById('runBtn');
+const resetBtn = document.getElementById('resetBtn');
+const guideBox = document.getElementById('guideBox');
+
+// Paneles
+const directSystemPanel = document.getElementById('directSystemPanel');
+const iterativeSystemPanel = document.getElementById('iterativeSystemPanel');
+const interpolationPanel = document.getElementById('interpolationPanel');
+
+// Entradas Directas
+const AInputDirect = document.getElementById('AInputDirect');
+const bVecInputDirect = document.getElementById('bVecInputDirect');
+const alertsDirect = document.getElementById('alertsDirect');
+const summaryDirect = document.getElementById('summaryDirect');
+const resultsDirect = document.getElementById('resultsDirect');
+
+// Entradas Iterativas
+const AInputIter = document.getElementById('AInputIter');
+const bVecInputIter = document.getElementById('bVecInputIter');
+const x0InputIter = document.getElementById('x0InputIter');
+const tolInputIter = document.getElementById('tolInputIter');
+const nmaxInputIter = document.getElementById('nmaxInputIter');
+const wGroupIter = document.getElementById('wGroupIter');
+const wInputIter = document.getElementById('wInputIter');
+const alertsIter = document.getElementById('alertsIter');
+const summaryIter = document.getElementById('summaryIter');
+const spectralRadiusBox = document.getElementById('spectralRadiusBox');
+const iterTable = document.getElementById('iterTable');
+const tableBoxIter = document.getElementById('tableBoxIter');
+
+// Entradas Interpolación
+const pointsInput = document.getElementById('pointsInput');
+const alertsInter = document.getElementById('alertsInter');
+const summaryInter = document.getElementById('summaryInter');
+const resultsInter = document.getElementById('resultsInter');
+const plotInter = document.getElementById('plotInter');
+
+
+/* ================= Method catalogs ================= */
+const METHODS = {
+  direct: [
+    { value: 'lu_gaussian', label: 'LU Simple (Gauss)' },
+    { value: 'lu_partial_pivot', label: 'LU con Pivoteo Parcial' },
+    { value: 'doolittle', label: 'Doolittle' },
+    { value: 'crout', label: 'Crout' },
+    { value: 'cholesky', label: 'Cholesky' }
+  ],
+  iterative: [
+    { value: 'jacobi', label: 'Jacobi' },
+    { value: 'gauss_seidel', label: 'Gauss-Seidel' },
+    { value: 'sor', label: 'SOR' }
+  ],
+  interpolation: [
+    { value: 'vandermonde', label: 'Vandermonde' },
+    { value: 'newton', label: 'Newton (Dif. Divididas)' },
+    { value: 'lagrange', label: 'Lagrange' },
+    { value: 'spline_linear', label: 'Trazadores Lineales' },
+    { value: 'spline_quadratic', label: 'Trazadores Cuadráticos' },
+    { value: 'spline_cubic', label: 'Trazadores Cúbicos' }
+  ]
+};
+
+const METHOD_GUIDES = {
+  // Directos
+  lu_gaussian: { title: 'Factorización LU Simple (Gauss)', body: ['Resuelve Ax=b encontrando L y U (A=LU) usando eliminación Gaussiana simple.', 'Falla si encuentra un cero en la diagonal (pivote).'] },
+  lu_partial_pivot: { title: 'Factorización LU con Pivoteo Parcial', body: ['Resuelve Ax=b (PA=LU) intercambiando filas para usar el pivote de mayor magnitud en cada columna.', 'Es más estable que la factorización LU simple.'] },
+  doolittle: { title: 'Factorización Doolittle', body: ['Resuelve A=LU donde L es una matriz triangular inferior unitaria (1 en la diagonal).', 'Requiere que las submatrices principales no sean singulares.'] },
+  crout: { title: 'Factorización Crout', body: ['Resuelve A=LU donde U es una matriz triangular superior unitaria (1 en la diagonal).', 'Similar a Doolittle, con diferentes propiedades de almacenamiento.'] },
+  cholesky: { title: 'Factorización Cholesky', body: ['Resuelve A=LLᵀ donde L es triangular inferior. Requiere que A sea simétrica y definida positiva.', 'Es extremadamente rápido y estable para las matrices que cumplen esta condición.'] },
+  // Iterativos
+  jacobi: { title: 'Método de Jacobi', body: ['Resuelve Ax=b iterativamente. x⁽ᵏ⁺¹⁾ = Tⱼ x⁽ᵏ⁾ + Cⱼ.', 'Requiere que la matriz sea diagonalmente dominante para garantizar convergencia (o radio espectral < 1).'] },
+  gauss_seidel: { title: 'Método de Gauss-Seidel', body: ['Similar a Jacobi, pero usa los valores actualizados de x tan pronto como están disponibles en la misma iteración.', 'Generalmente converge más rápido que Jacobi si lo hace.'] },
+  sor: { title: 'Método SOR (Successive Over-Relaxation)', body: ['Una extrapolación de Gauss-Seidel controlada por un factor de relajación ω (omega).', 'Si 0 < ω < 1 (sub-relajación), puede ayudar a converger a sistemas que no convergen. Si 1 < ω < 2 (sobre-relajación), puede acelerar la convergencia. Si ω = 1, es Gauss-Seidel.'] },
+  // Interpolación
+  vandermonde: { title: 'Interpolación por Vandermonde', body: ['Encuentra el polinomio único de grado n que pasa por n+1 puntos resolviendo el sistema Vc = y.', 'La matriz de Vandermonde V puede estar muy mal condicionada, no se recomienda para n grande.'] },
+  newton: { title: 'Polinomio de Newton (Diferencias Divididas)', body: ['Construye el polinomio interpolante usando una tabla de diferencias divididas.', 'Es más estable que Vandermonde y permite añadir nuevos puntos fácilmente.'] },
+  lagrange: { title: 'Polinomio de Lagrange', body: ['Construye el polinomio como una suma ponderada de polinomios base Lᵢ(x) que son 1 en xᵢ y 0 en otros nodos.', 'Conceptualmente simple, pero computacionalmente menos eficiente que Newton para evaluación.'] },
+  spline_linear: { title: 'Trazadores Lineales (Splines)', body: ['Conecta los puntos con segmentos de línea recta.', 'El resultado es continuo (C⁰), pero no suave (la derivada no es continua).'] },
+  spline_quadratic: { title: 'Trazadores Cuadráticos (Splines)', body: ['Conecta los puntos con segmentos de parábolas.', 'Se imponen condiciones para que sea continuo (C⁰) y suave (C¹ - derivada continua).'] },
+  spline_cubic: { title: 'Trazadores Cúbicos (Splines)', body: ['Conecta los puntos con segmentos de polinomios cúbicos.', 'Se imponen condiciones para que sea C⁰, C¹ y C² (segunda derivada continua). Se usan "condiciones naturales" (S\'\'(x₀) = S\'\'(xₙ) = 0).'] }
+};
+
+/* ================= App State ================= */
+let appMode = 'direct'; // 'direct' | 'iterative' | 'interpolation'
+
+/* ================= Helpers ================= */
+const setHTML=(el,html)=>el.innerHTML=html;
+const appendHTML=(el,html)=>el.insertAdjacentHTML('beforeend',html);
+const esc = (s)=>String(s).replace(/[&<>]/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));
+
+// Constructor de mensajes
+function msgCard(type, title, lines){
+  const klass = type==='error'?'err': type==='recommend'?'recommend': type==='success'?'ok': type==='info'?'info':'warn';
+  const body = (Array.isArray(lines)? lines: [lines]).map(p=>`<p class="hint">${p}</p>`).join('');
+  return `<div class="msg ${klass}"><h4>${title}</h4>${body}</div>`;
+}
+
+// Formateo y helpers de matrices (traducidos de numerical_methods_all_course.py)
+function zeros(n, m = null) {
+  if (m === null) m = n;
+  return Array.from({ length: n }, () => Array(m).fill(0.0));
+}
+function identity(n) {
+  const I = zeros(n, n);
+  for (let i = 0; i < n; i++) I[i][i] = 1.0;
+  return I;
+}
+function deepCopy(v) {
+  return JSON.parse(JSON.stringify(v));
+}
+function formatNum(v, prec = 6) {
+  if (typeof v === 'object' && v !== null && 're' in v) { // Objeto complejo
+    const re = v.re.toFixed(prec);
+    const im = v.im.toFixed(prec);
+    if (Math.abs(v.im) < 1e-12) return re.padStart(10);
+    return `${re}${v.im >= 0 ? '+' : '-'}${Math.abs(v.im).toFixed(prec)}i`.padStart(10);
+  }
+  return Number(v).toFixed(prec).padStart(10);
+}
+function matrixToHTML(M, title = "") {
+  let html = title ? `<h4>${title}</h4>` : '';
+  html += '<div class="matrix-display">';
+  html += M.map(row => 
+    " " + row.map(v => formatNum(v, 4)).join(" ")
+  ).join("\n");
+  html += '</div>';
+  return html;
+}
+function vectorToHTML(v, title = "") {
+    let html = title ? `<h4>${title}</h4>` : '';
+    html += '<div class="matrix-display">';
+    html += " " + v.map(val => formatNum(val, 6)).join("\n ");
+    html += '</div>';
+    return html;
+}
+function forwardSubstitution(L, b) {
+  const n = L.length;
+  const y = Array(n).fill(0.0);
+  for (let i = 0; i < n; i++) {
+    let s = b[i];
+    for (let j = 0; j < i; j++) {
+      s -= L[i][j] * y[j];
+    }
+    if (Math.abs(L[i][i]) < 1e-14) throw new Error("Pivote cero en sustitución progresiva.");
+    y[i] = s / L[i][i];
+  }
+  return y;
+}
+function backwardSubstitution(U, y) {
+  const n = U.length;
+  const x = Array(n).fill(0.0);
+  for (let i = n - 1; i >= 0; i--) {
+    let s = y[i];
+    for (let j = i + 1; j < n; j++) {
+      s -= U[i][j] * x[j];
+    }
+    if (Math.abs(U[i][i]) < 1e-14) throw new Error("Pivote cero en sustitución regresiva.");
+    x[i] = s / U[i][i];
+  }
+  return x;
+}
+function applyPermutation(P, b) {
+    const n = P.length;
+    const out = Array(n).fill(0.0);
+    for (let i = 0; i < n; i++) {
+        const j = P[i].indexOf(1.0); // Encontrar el '1' en la fila i
+        out[i] = b[j];
+    }
+    return out;
+}
+// Helper para multiplicar Matriz-Vector
+function matVec(A, x) {
+    return A.map(row => row.reduce((sum, val, j) => sum + val * x[j], 0));
+}
+// Helper para resta de Vectores
+function vecSub(a, b) {
+    return a.map((val, i) => val - b[i]);
+}
+// Helper para norma de Vector
+function vecNorm2(x) {
+    return Math.sqrt(x.reduce((sum, val) => sum + val * val, 0));
+}
+// Helper para invertir matriz triangular inferior
+function invLowerTriangular(M) {
+    const n = M.length;
+    const X = zeros(n, n);
+    for (let i = 0; i < n; i++) {
+        if (Math.abs(M[i][i]) < 1e-14) throw new Error("Matriz singular en invLowerTriangular.");
+        X[i][i] = 1.0 / M[i][i];
+        for (let j = 0; j < i; j++) {
+            let s = 0;
+            for (let k = j; k < i; k++) {
+                s += M[i][k] * X[k][j];
+            }
+            X[i][j] = -s / M[i][i];
+        }
+    }
+    return X;
+}
+// Helper para multiplicar Matriz-Matriz
+function matMul(A, B) {
+    const n = A.length, m = A[0].length, p = B[0].length;
+    const C = zeros(n, p);
+    for (let i = 0; i < n; i++) {
+        for (let k = 0; k < m; k++) {
+            const aik = A[i][k];
+            if (aik === 0.0) continue;
+            for (let j = 0; j < p; j++) {
+                C[i][j] += aik * B[k][j];
+            }
+        }
+    }
+    return C;
+}
+// Estimación de Radio Espectral (Power Iteration)
+function spectralRadius(A, iters = 100) {
+    try {
+        const n = A.length;
+        let v = Array(n).fill(1.0);
+        let lambda = 0.0;
+        for (let i = 0; i < iters; i++) {
+            const w = matVec(A, v);
+            const nw = vecNorm2(w);
+            if (nw === 0.0) return 0.0;
+            v = w.map(wi => wi / nw);
+        }
+        const w = matVec(A, v);
+        const num = w.reduce((sum, wi, i) => sum + wi * v[i], 0);
+        const den = v.reduce((sum, vi) => sum + vi * vi, 0);
+        return Math.abs(den !== 0 ? num / den : 0.0);
+    } catch (e) {
+        return NaN; // Falla silenciosa si la matriz no es cuadrada, etc.
+    }
+}
+// Resolver sistema con eliminación Gaussiana (para Vandermonde)
+function gaussianSolve(A_in, b_in) {
+    const A = deepCopy(A_in);
+    const b = [...b_in];
+    const n = A.length;
+    for (let k = 0; k < n - 1; k++) {
+        let p = k;
+        for (let i = k + 1; i < n; i++) {
+            if (Math.abs(A[i][k]) > Math.abs(A[p][k])) p = i;
+        }
+        if (Math.abs(A[p][k]) < 1e-14) throw new Error("Matriz singular en gaussianSolve.");
+        if (p !== k) {
+            [A[k], A[p]] = [A[p], A[k]];
+            [b[k], b[p]] = [b[p], b[k]];
+        }
+        for (let i = k + 1; i < n; i++) {
+            const m = A[i][k] / A[k][k];
+            for (let j = k; j < n; j++) {
+                A[i][j] -= m * A[k][j];
+            }
+            b[i] -= m * b[k];
+        }
+    }
+    return backwardSubstitution(A, b);
+}
+
+// Objeto complejo simple para Cholesky
+const Complex = {
+  add: (a, b) => ({ re: a.re + b.re, im: a.im + b.im }),
+  sub: (a, b) => ({ re: a.re - b.re, im: a.im - b.im }),
+  mul: (a, b) => ({ re: a.re * b.re - a.im * b.im, im: a.re * b.im + a.im * b.re }),
+  div: (a, b) => {
+    const den = b.re * b.re + b.im * b.im;
+    return {
+      re: (a.re * b.re + a.im * b.im) / den,
+      im: (a.im * b.re - a.re * b.im) / den
+    };
+  },
+  sqrt: (a) => {
+    const r = Math.sqrt(Math.sqrt(a.re * a.re + a.im * a.im));
+    const theta = Math.atan2(a.im, a.re) / 2;
+    return { re: r * Math.cos(theta), im: r * Math.sin(theta) };
+  },
+  fromReal: (r) => ({ re: Number(r), im: 0.0 })
+};
+
+
+/* ================= Métodos de Sistemas Directos (JS) ================= */
+
+function lu_gaussian(A_in) {
+    const U = deepCopy(A_in);
+    const n = U.length;
+    const L = identity(n);
+    const etapas = [];
+    etapas.push({ L: deepCopy(L), U: deepCopy(U), msg: 'Etapa 0 (Inicial)' });
+    for (let k = 0; k < n - 1; k++) {
+        if (Math.abs(U[k][k]) < 1e-14) throw new Error("Pivote cero/cercano a cero. Usar pivoteo.");
+        for (let i = k + 1; i < n; i++) {
+            const m = U[i][k] / U[k][k];
+            L[i][k] = m;
+            for (let j = k; j < n; j++) {
+                U[i][j] -= m * U[k][j];
+            }
+        }
+        etapas.push({ L: deepCopy(L), U: deepCopy(U), msg: `Etapa ${k+1}` });
+    }
+    return { L, U, etapas };
+}
+
+function lu_partial_pivot(A_in) {
+    const U = deepCopy(A_in);
+    const n = U.length;
+    const L = identity(n);
+    const P = identity(n);
+    const etapas = [];
+    etapas.push({ L: deepCopy(L), U: deepCopy(U), P: deepCopy(P), msg: 'Etapa 0 (Inicial)' });
+    
+    for (let k = 0; k < n - 1; k++) {
+        let pivot = k;
+        for (let i = k + 1; i < n; i++) {
+            if (Math.abs(U[i][k]) > Math.abs(U[pivot][k])) {
+                pivot = i;
+            }
+        }
+        if (Math.abs(U[pivot][k]) < 1e-14) throw new Error("Matriz singular.");
+        
+        if (pivot !== k) {
+            [U[k], U[pivot]] = [U[pivot], U[k]]; // Intercambiar filas en U
+            [P[k], P[pivot]] = [P[pivot], P[k]]; // Intercambiar filas en P
+            for (let j = 0; j < k; j++) { // Intercambiar en L
+                [L[k][j], L[pivot][j]] = [L[pivot][j], L[k][j]];
+            }
+        }
+
+        for (let i = k + 1; i < n; i++) {
+            const m = U[i][k] / U[k][k];
+            L[i][k] = m;
+            for (let j = k; j < n; j++) {
+                U[i][j] -= m * U[k][j];
+            }
+        }
+        etapas.push({ L: deepCopy(L), U: deepCopy(U), P: deepCopy(P), msg: `Etapa ${k+1}` });
+    }
+    return { L, U, P, etapas };
+}
+
+function doolittle(A_in) {
+    const A = deepCopy(A_in);
+    const n = A.length;
+    const L = identity(n);
+    const U = zeros(n, n);
+    const etapas = [];
+    etapas.push({ L: deepCopy(L), U: deepCopy(U), msg: 'Etapa 0 (Inicial)' });
+
+    for (let i = 0; i < n; i++) {
+        for (let j = i; j < n; j++) { // Calcular fila i de U
+            let s = 0;
+            for (let k = 0; k < i; k++) s += L[i][k] * U[k][j];
+            U[i][j] = A[i][j] - s;
+        }
+        for (let j = i + 1; j < n; j++) { // Calcular columna i de L
+            if (Math.abs(U[i][i]) < 1e-14) throw new Error("Pivote cero en Doolittle.");
+            let s = 0;
+            for (let k = 0; k < i; k++) s += L[j][k] * U[k][i];
+            L[j][i] = (A[j][i] - s) / U[i][i];
+        }
+        etapas.push({ L: deepCopy(L), U: deepCopy(U), msg: `Etapa ${i+1}` });
+    }
+    return { L, U, etapas };
+}
+
+function crout(A_in) {
+    const A = deepCopy(A_in);
+    const n = A.length;
+    const L = zeros(n, n);
+    const U = identity(n);
+    const etapas = [];
+    etapas.push({ L: deepCopy(L), U: deepCopy(U), msg: 'Etapa 0 (Inicial)' });
+
+    for (let j = 0; j < n; j++) {
+        for (let i = j; i < n; i++) { // Calcular columna j de L
+            let s = 0;
+            for (let k = 0; k < j; k++) s += L[i][k] * U[k][j];
+            L[i][j] = A[i][j] - s;
+        }
+        for (let i = j + 1; i < n; i++) { // Calcular fila j de U
+            if (Math.abs(L[j][j]) < 1e-14) throw new Error("Pivote cero en Crout.");
+            let s = 0;
+            for (let k = 0; k < j; k++) s += L[j][k] * U[k][i];
+            U[j][i] = (A[j][i] - s) / L[j][j];
+        }
+        etapas.push({ L: deepCopy(L), U: deepCopy(U), msg: `Etapa ${j+1}` });
+    }
+    return { L, U, etapas };
+}
+
+function cholesky(A_in) {
+    const A = A_in.map(row => row.map(Complex.fromReal));
+    const n = A.length;
+    const L = zeros(n, n).map(row => row.map(Complex.fromReal));
+    const etapas = [];
+    etapas.push({ L: deepCopy(L), msg: 'Etapa 0 (Inicial)' });
+
+    for (let i = 0; i < n; i++) {
+        for (let j = 0; j <= i; j++) {
+            let s = Complex.fromReal(0);
+            for (let k = 0; k < j; k++) {
+                s = Complex.add(s, Complex.mul(L[i][k], L[j][k]));
+            }
+            const diff = Complex.sub(A[i][j], s);
+            if (i === j) {
+                if (diff.re < 0 && Math.abs(diff.im) < 1e-12) {
+                    throw new Error("Matriz no es definida positiva (raíz de negativo).");
+                }
+                L[i][i] = Complex.sqrt(diff);
+            } else {
+                if (Math.abs(L[j][j].re) < 1e-14 && Math.abs(L[j][j].im) < 1e-14) {
+                    throw new Error("Pivote cero en Cholesky.");
+                }
+                L[i][j] = Complex.div(diff, L[j][j]);
+            }
+        }
+        etapas.push({ L: deepCopy(L), msg: `Etapa ${i+1}` });
+    }
+    return { L, U: null, etapas }; // U es L transpuesta conjugada, pero L es suficiente
+}
+
+
+/* ================= Métodos de Sistemas Iterativos (JS) ================= */
+
+function jacobi(A, b, x0, tol, kmax) {
+    const n = A.length;
+    const T = zeros(n, n);
+    const C = Array(n).fill(0.0);
+    const rows = [];
+    
+    for (let i = 0; i < n; i++) {
+        const diag = A[i][i];
+        if (Math.abs(diag) < 1e-14) throw new Error("Diagonal con cero; Jacobi no puede proceder.");
+        C[i] = b[i] / diag;
+        for (let j = 0; j < n; j++) {
+            if (i !== j) T[i][j] = -A[i][j] / diag;
+        }
+    }
+
+    let x = [...x0];
+    rows.push([0, ...x.map(v => v.toFixed(6)), 'N/A']);
+    
+    for (let k = 1; k <= kmax; k++) {
+        const x_new = matVec(T, x).map((val, i) => val + C[i]);
+        const e = vecNorm2(vecSub(x_new, x));
+        rows.push([k, ...x_new.map(v => v.toFixed(6)), e.toExponential(2)]);
+        x = x_new;
+        if (e <= tol) break;
+    }
+    return { x, T, C, rows };
+}
+
+function gauss_seidel(A, b, x0, tol, kmax) {
+    const n = A.length;
+    const rows = [];
+    let x = [...x0];
+    rows.push([0, ...x.map(v => v.toFixed(6)), 'N/A']);
+
+    // Calcular T y C teóricas para reporte
+    const D = zeros(n,n), L = zeros(n,n), U = zeros(n,n);
+    for(let i=0; i<n; i++) {
+        for(let j=0; j<n; j++) {
+            if (i==j) D[i][j] = A[i][j];
+            else if (i>j) L[i][j] = -A[i][j];
+            else U[i][j] = -A[i][j];
+        }
+    }
+    const DL = zeros(n,n);
+    for(let i=0; i<n; i++) for(let j=0; j<n; j++) DL[i][j] = D[i][j] - L[i][j];
+    const InvDL = invLowerTriangular(DL);
+    const T = matMul(InvDL, U);
+    const C = matVec(InvDL, b);
+
+    for (let k = 1; k <= kmax; k++) {
+        const x_old = [...x];
+        for (let i = 0; i < n; i++) {
+            let s1 = 0, s2 = 0;
+            for (let j = 0; j < i; j++) s1 += A[i][j] * x[j];
+            for (let j = i + 1; j < n; j++) s2 += A[i][j] * x_old[j];
+            if (Math.abs(A[i][i]) < 1e-14) throw new Error("Diagonal con cero; Gauss-Seidel no puede proceder.");
+            x[i] = (b[i] - s1 - s2) / A[i][i];
+        }
+        const e = vecNorm2(vecSub(x, x_old));
+        rows.push([k, ...x.map(v => v.toFixed(6)), e.toExponential(2)]);
+        if (e <= tol) break;
+    }
+    return { x, T, C, rows };
+}
+
+function sor(A, b, x0, w, tol, kmax) {
+    const n = A.length;
+    const rows = [];
+    let x = [...x0];
+    rows.push([0, ...x.map(v => v.toFixed(6)), 'N/A']);
+
+    // Calcular T y C teóricas para reporte
+    const D = zeros(n,n), L = zeros(n,n), U = zeros(n,n);
+    for(let i=0; i<n; i++) {
+        for(let j=0; j<n; j++) {
+            if (i==j) D[i][j] = A[i][j];
+            else if (i>j) L[i][j] = -A[i][j];
+            else U[i][j] = -A[i][j];
+        }
+    }
+    const DwL = zeros(n,n);
+    for(let i=0; i<n; i++) for(let j=0; j<n; j++) DwL[i][j] = D[i][j] - w*L[i][j];
+    const InvDwL = invLowerTriangular(DwL);
+    const M = zeros(n,n);
+    for(let i=0; i<n; i++) for(let j=0; j<n; j++) M[i][j] = (1-w)*D[i][j] + w*U[i][j];
+    const T = matMul(InvDwL, M);
+    const C = matVec(InvDwL, b).map(v => v * w);
+
+    for (let k = 1; k <= kmax; k++) {
+        const x_old = [...x];
+        for (let i = 0; i < n; i++) {
+            let s1 = 0, s2 = 0;
+            for (let j = 0; j < i; j++) s1 += A[i][j] * x[j];
+            for (let j = i + 1; j < n; j++) s2 += A[i][j] * x_old[j];
+            if (Math.abs(A[i][i]) < 1e-14) throw new Error("Diagonal con cero; SOR no puede proceder.");
+            x[i] = (1 - w) * x_old[i] + (w / A[i][i]) * (b[i] - s1 - s2);
+        }
+        const e = vecNorm2(vecSub(x, x_old));
+        rows.push([k, ...x.map(v => v.toFixed(6)), e.toExponential(2)]);
+        if (e <= tol) break;
+    }
+    return { x, T, C, rows };
+}
+
+
+/* ================= Métodos de Interpolación (JS) ================= */
+
+function vandermonde(x, y) {
+    const n = x.length;
+    const V = zeros(n, n);
+    for (let i = 0; i < n; i++) {
+        for (let j = 0; j < n; j++) {
+            V[i][j] = Math.pow(x[i], n - 1 - j);
+        }
+    }
+    const a = gaussianSolve(V, y);
+    return { V, a, polyStr: polyToString(a) };
+}
+
+function newton_divided_differences(x, y) {
+    const n = x.length;
+    const table = zeros(n, n);
+    for(let i=0; i<n; i++) table[i][0] = y[i];
+    
+    for (let k = 1; k < n; k++) {
+        for (let i = 0; i < n - k; i++) {
+            table[i][k] = (table[i + 1][k - 1] - table[i][k - 1]) / (x[i + k] - x[i]);
+        }
+    }
+    const coeffs = table[0]; // Diagonal principal
+    
+    // Construir string del polinomio
+    let polyStr = coeffs[0].toFixed(6);
+    let term = "";
+    for (let k = 1; k < n; k++) {
+        term += `(x - ${x[k-1]})`;
+        const sign = coeffs[k] >= 0 ? '+' : '';
+        polyStr += ` ${sign} ${coeffs[k].toFixed(6)} ${term}`;
+    }
+    
+    return { table, coeffs, polyStr };
+}
+
+function lagrange(x, y) {
+    const n = x.length;
+    let polyStr = "";
+    
+    // Función para construir L_k(x) como string
+    function buildL_k(k) {
+        let numStr = "";
+        let den = 1.0;
+        for (let j = 0; j < n; j++) {
+            if (k === j) continue;
+            numStr += `(x - ${x[j]})`;
+            den *= (x[k] - x[j]);
+        }
+        return `(${numStr} / ${den.toFixed(6)})`;
+    }
+
+    for (let k = 0; k < n; k++) {
+        const sign = y[k] >= 0 ? '+' : '';
+        polyStr += ` ${sign} ${y[k].toFixed(6)} * ${buildL_k(k)}`;
+    }
+    
+    return { polyStr: polyStr.trim().replace(/^\+/, '') };
+}
+
+function linear_splines(x, y) {
+    const n = x.length - 1;
+    const coefs = []; // (m, c) -> mx + c
+    const polyStrs = [];
+    for (let i = 0; i < n; i++) {
+        const m = (y[i+1] - y[i]) / (x[i+1] - x[i]);
+        const c = y[i] - m * x[i];
+        coefs.push({ m, c });
+        polyStrs.push(`S${i}(x) = ${m.toFixed(6)}x + ${c.toFixed(6)}  (para x en [${x[i]}, ${x[i+1]}])`);
+    }
+    return { coefs, polyStrs };
+}
+
+function spline_solver(A_in, b_in) {
+    // Trazadores cuadráticos y cúbicos generan sistemas grandes
+    // Usaremos un solver simple de Gauss-Pivoteo
+    return gaussianSolve(A_in, b_in);
+}
+
+function quadratic_splines(x, y) {
+    const n = x.length - 1; // n = número de intervalos
+    const m = 3 * n; // 3n incógnitas (a_i, b_i, c_i)
+    const A = zeros(m, m);
+    const b = Array(m).fill(0.0);
+    let eq = 0;
+
+    // 1. Interpolación (2n ecuaciones)
+    for (let i = 0; i < n; i++) {
+        // S_i(x_i) = y_i
+        A[eq][3*i] = x[i]**2; A[eq][3*i+1] = x[i]; A[eq][3*i+2] = 1.0;
+        b[eq] = y[i]; eq++;
+        // S_i(x_{i+1}) = y_{i+1}
+        A[eq][3*i] = x[i+1]**2; A[eq][3*i+1] = x[i+1]; A[eq][3*i+2] = 1.0;
+        b[eq] = y[i+1]; eq++;
+    }
+    
+    // 2. Continuidad de derivada S'_i(x_{i+1}) = S'_{i+1}(x_{i+1}) (n-1 ecuaciones)
+    for (let i = 0; i < n - 1; i++) {
+        const xi1 = x[i+1];
+        // 2*a_i*x_{i+1} + b_i
+        A[eq][3*i] = 2*xi1; A[eq][3*i+1] = 1.0;
+        // - (2*a_{i+1}*x_{i+1} + b_{i+1})
+        A[eq][3*(i+1)] = -2*xi1; A[eq][3*(i+1)+1] = -1.0;
+        b[eq] = 0.0; eq++;
+    }
+
+    // 3. Condición de frontera S''(x_0) = 0 (o a_0 = 0) (1 ecuación)
+    // 2*a_0 = 0  => a_0 = 0
+    A[eq][0] = 2.0;
+    b[eq] = 0.0; eq++;
+
+    // Resolver el sistema
+    const S = spline_solver(A, b);
+    
+    const coefs = [];
+    const polyStrs = [];
+    for(let i=0; i<n; i++) {
+        const [a, b_val, c] = [S[3*i], S[3*i+1], S[3*i+2]];
+        coefs.push({a, b: b_val, c});
+        polyStrs.push(`S${i}(x) = ${a.toFixed(6)}x² + ${b_val.toFixed(6)}x + ${c.toFixed(6)}  (para x en [${x[i]}, ${x[i+1]}])`);
+    }
+    return { coefs, polyStrs };
+}
+
+function cubic_splines_natural(x, y) {
+    const n = x.length - 1; // n = número de intervalos
+    const m = 4 * n; // 4n incógnitas (a_i, b_i, c_i, d_i)
+    const A = zeros(m, m);
+    const b = Array(m).fill(0.0);
+    let eq = 0;
+
+    // 1. Interpolación (2n ecuaciones)
+    for (let i = 0; i < n; i++) {
+        // S_i(x_i) = y_i
+        A[eq][4*i] = x[i]**3; A[eq][4*i+1] = x[i]**2; A[eq][4*i+2] = x[i]; A[eq][4*i+3] = 1.0;
+        b[eq] = y[i]; eq++;
+        // S_i(x_{i+1}) = y_{i+1}
+        A[eq][4*i] = x[i+1]**3; A[eq][4*i+1] = x[i+1]**2; A[eq][4*i+2] = x[i+1]; A[eq][4*i+3] = 1.0;
+        b[eq] = y[i+1]; eq++;
+    }
+
+    // 2. Continuidad de derivada S'_i(x_{i+1}) = S'_{i+1}(x_{i+1}) (n-1 ecuaciones)
+    for (let i = 0; i < n - 1; i++) {
+        const xi1 = x[i+1];
+        // 3a_i*x² + 2b_i*x + c_i
+        A[eq][4*i] = 3*xi1**2; A[eq][4*i+1] = 2*xi1; A[eq][4*i+2] = 1.0;
+        // - (3a_{i+1}*x² + 2b_{i+1}*x + c_{i+1})
+        A[eq][4*(i+1)] = -3*xi1**2; A[eq][4*(i+1)+1] = -2*xi1; A[eq][4*(i+1)+2] = -1.0;
+        b[eq] = 0.0; eq++;
+    }
+
+    // 3. Continuidad de 2da derivada S''_i(x_{i+1}) = S''_{i+1}(x_{i+1}) (n-1 ecuaciones)
+    for (let i = 0; i < n - 1; i++) {
+        const xi1 = x[i+1];
+        // 6a_i*x + 2b_i
+        A[eq][4*i] = 6*xi1; A[eq][4*i+1] = 2.0;
+        // - (6a_{i+1}*x + 2b_{i+1})
+        A[eq][4*(i+1)] = -6*xi1; A[eq][4*(i+1)+1] = -2.0;
+        b[eq] = 0.0; eq++;
+    }
+
+    // 4. Condiciones de frontera "Natural" (2 ecuaciones)
+    // S''_0(x_0) = 0 => 6a_0*x_0 + 2b_0 = 0
+    A[eq][0] = 6*x[0]; A[eq][1] = 2.0;
+    b[eq] = 0.0; eq++;
+    
+    // S''_{n-1}(x_n) = 0 => 6a_{n-1}*x_n + 2b_{n-1} = 0
+    A[eq][4*(n-1)] = 6*x[n]; A[eq][4*(n-1)+1] = 2.0;
+    b[eq] = 0.0; eq++;
+
+    // Resolver el sistema
+    const S = spline_solver(A, b);
+    
+    const coefs = [];
+    const polyStrs = [];
+    for(let i=0; i<n; i++) {
+        const [a, b_val, c, d] = [S[4*i], S[4*i+1], S[4*i+2], S[4*i+3]];
+        coefs.push({a, b: b_val, c, d});
+        polyStrs.push(`S${i}(x) = ${a.toFixed(6)}x³ + ${b_val.toFixed(6)}x² + ${c.toFixed(6)}x + ${d.toFixed(6)}  (para x en [${x[i]}, ${x[i+1]}])`);
+    }
+    return { coefs, polyStrs };
+}
+
+// Helpers de formato de polinomios
+function polyToString(a) {
+    const n = a.length - 1;
+    return a.map((c, i) => {
+        const power = n - i;
+        const val = c.toFixed(6);
+        if (power === 0) return `${val}`;
+        if (power === 1) return `${val}x`;
+        return `${val}x^${power}`;
+    }).join(' + ').replace(/\+ -/g, '- ');
+}
+
+// Helpers de Ploteo
+function plotSpline(splineType, coefs, x_nodes, y_nodes) {
+    const traces = [];
+    const n_intervals = coefs.length;
+
+    for (let i = 0; i < n_intervals; i++) {
+        const x_start = x_nodes[i];
+        const x_end = x_nodes[i+1];
+        const c = coefs[i];
+        
+        const x_vals = [];
+        const y_vals = [];
+        const n_points = 20;
+        for (let j = 0; j <= n_points; j++) {
+            const x = x_start + (x_end - x_start) * j / n_points;
+            x_vals.push(x);
+            let y = 0;
+            if (splineType === 'spline_linear') {
+                y = c.m * x + c.c;
+            } else if (splineType === 'spline_quadratic') {
+                y = c.a * x**2 + c.b * x + c.c;
+            } else if (splineType === 'spline_cubic') {
+                y = c.a * x**3 + c.b * x**2 + c.c * x + c.d;
+            }
+            y_vals.push(y);
+        }
+        traces.push({ x: x_vals, y: y_vals, mode: 'lines', type: 'scatter', name: `S${i}` });
+    }
+    
+    // Añadir nodos
+    traces.push({ x: x_nodes, y: y_nodes, mode: 'markers', type: 'scatter', name: 'Nodos', marker: { color: 'red', size: 8 } });
+    
+    Plotly.newPlot(plotInter, traces, {
+        title: `Trazadores ${splineType.split('_')[1]}`,
+        margin: { l: 40, r: 20, t: 40, b: 40 },
+        xaxis: { title: 'x' },
+        yaxis: { title: 'y' }
+    }, { displayModeBar: true, responsive: true });
+}
+
+function plotPoly(polyType, x_nodes, y_nodes, a) {
+    const x_min = Math.min(...x_nodes);
+    const x_max = Math.max(...x_nodes);
+    const range = x_max - x_min;
+    
+    const x_vals = [];
+    const y_vals = [];
+    const n_points = 100;
+
+    const n = a ? a.length - 1 : 0;
+    
+    for (let i = 0; i <= n_points; i++) {
+        const x = x_min - 0.1 * range + (range * 1.2) * i / n_points;
+        x_vals.push(x);
+        let y = 0;
+        if (polyType === 'vandermonde' && a) {
+            for (let j = 0; j <= n; j++) {
+                y += a[j] * Math.pow(x, n - j);
+            }
+        }
+        // Nota: Newton y Lagrange son más complejos de evaluar numéricamente desde el string.
+        // Para Vandermonde, tenemos los coeficientes 'a'.
+        y_vals.push(y);
+    }
+    
+    const traces = [];
+    if (polyType === 'vandermonde' && a) {
+        traces.push({ x: x_vals, y: y_vals, mode: 'lines', type: 'scatter', name: 'Polinomio P(x)' });
+    }
+    
+    traces.push({ x: x_nodes, y: y_nodes, mode: 'markers', type: 'scatter', name: 'Nodos', marker: { color: 'red', size: 8 } });
+    
+    Plotly.newPlot(plotInter, traces, {
+        title: `Interpolación por ${polyType}`,
+        margin: { l: 40, r: 20, t: 40, b: 40 },
+        xaxis: { title: 'x' },
+        yaxis: { title: 'y' }
+    }, { displayModeBar: true, responsive: true });
+}
+
+
+/* ================= Análisis de Entradas ================= */
+
+function parseMatrix(text) {
+  const rows = String(text).trim().split(/\n+/).map(line =>
+    line.trim().split(/[\s,]+/).filter(Boolean).map(v => {
+      const n = Number(v);
+      if (!Number.isFinite(n)) throw new Error(`Valor no numérico en A: "${v}"`);
+      return n;
+    })
+  );
+  const n = rows.length;
+  if (n === 0) throw new Error('Matriz A está vacía.');
+  if (!rows.every(r => r.length === n)) throw new Error("A debe ser cuadrada (n x n) y todas las filas deben tener n elementos.");
+  return rows;
+}
+function parseVector(text, n_expected = null) {
+  const arr = String(text).trim().split(/[\s,]+/).filter(Boolean).map(v => {
+    const n = Number(v);
+    if (!Number.isFinite(n)) throw new Error(`Valor no numérico en vector: "${v}"`);
+    return n;
+  });
+  if (n_expected !== null && arr.length !== n_expected) {
+    throw new Error(`El vector debe tener ${n_expected} elementos, pero tiene ${arr.length}.`);
+  }
+  return arr;
+}
+function parsePoints(text) {
+    const points = String(text).trim().split(/\n+/).map(line => 
+        line.trim().split(/[\s,]+/).filter(Boolean).map(Number)
+    );
+    if (points.some(p => p.length !== 2 || !Number.isFinite(p[0]) || !Number.isFinite(p[1]))) {
+        throw new Error('Formato de puntos inválido. Use "x, y" o "x y" por línea.');
+    }
+    const x = points.map(p => p[0]);
+    const y = points.map(p => p[1]);
+    return { x, y };
+}
+
+/* ================= Controladores de Ejecución ================= */
+
+function runDirect() {
+  setHTML(alertsDirect, '');
+  setHTML(summaryDirect, '');
+  setHTML(resultsDirect, '');
+  
+  try {
+    const A = parseMatrix(AInputDirect.value);
+    const b = parseVector(bVecInputDirect.value, A.length);
+    const method = methodSelect.value;
+    
+    let result, L, U, P, x, b_perm;
+    
+    if (method === 'lu_gaussian') {
+        result = lu_gaussian(A);
+        L = result.L; U = result.U;
+        const y = forwardSubstitution(L, b);
+        x = backwardSubstitution(U, y);
+    } else if (method === 'lu_partial_pivot') {
+        result = lu_partial_pivot(A);
+        L = result.L; U = result.U; P = result.P;
+        b_perm = applyPermutation(P, b);
+        const y = forwardSubstitution(L, b_perm);
+        x = backwardSubstitution(U, y);
+    } else if (method === 'doolittle') {
+        result = doolittle(A);
+        L = result.L; U = result.U;
+        const y = forwardSubstitution(L, b);
+        x = backwardSubstitution(U, y);
+    } else if (method === 'crout') {
+        result = crout(A);
+        L = result.L; U = result.U;
+        const y = forwardSubstitution(L, b);
+        x = backwardSubstitution(U, y);
+    } else if (method === 'cholesky') {
+        result = cholesky(A); // L es compleja (o real)
+        L = result.L;
+        // Para resolver A=LLᵀ -> Ly = b, Lᵀx = y
+        // Nota: Cholesky JS usa objetos complejos
+        const y = forwardSubstitution(L, b.map(Complex.fromReal));
+        // L transpuesta conjugada
+        const LT = zeros(A.length, A.length).map(r => r.map(Complex.fromReal));
+        for(let i=0; i<A.length; i++) {
+            for(let j=0; j<A.length; j++) {
+                LT[i][j] = { re: L[j][i].re, im: -L[j][i].im };
+            }
+        }
+        x = backwardSubstitution(LT, y).map(c => c.re); // Asumir solución real
+    }
+    
+    setHTML(summaryDirect, msgCard('success', 'Solución Encontrada', `Método: ${methodSelect.options[methodSelect.selectedIndex].text}`));
+    
+    let html = '<h3>Resultados de Factorización</h3>';
+    if (result.etapas) {
+        html += `<details><summary class="font-semibold cursor-pointer">Ver Etapas (${result.etapas.length})</summary><div class="p-2 space-y-2">`;
+        result.etapas.forEach(etapa => {
+            html += `<h4>${etapa.msg}</h4>`;
+            if (etapa.L) html += matrixToHTML(etapa.L, 'L:');
+            if (etapa.U) html += matrixToHTML(etapa.U, 'U:');
+            if (etapa.P) html += matrixToHTML(etapa.P, 'P:');
+        });
+        html += `</div></details>`;
+    } else {
+        if (L) html += matrixToHTML(L, 'L:');
+        if (U) html += matrixToHTML(U, 'U:');
+        if (P) html += matrixToHTML(P, 'P:');
+    }
+    
+    html += vectorToHTML(x, 'Solución x:');
+    setHTML(resultsDirect, html);
+    
+  } catch (e) {
+    setHTML(alertsDirect, msgCard('error', 'Error de Ejecución', e.message));
+  }
+}
+
+function runIterative() {
+  setHTML(alertsIter, '');
+  setHTML(summaryIter, '');
+  setHTML(spectralRadiusBox, '');
+  setHTML(iterTable, '');
+  
+  try {
+    const A = parseMatrix(AInputIter.value);
+    const b = parseVector(bVecInputIter.value, A.length);
+    const x0 = parseVector(x0InputIter.value, A.length);
+    const tol = Number(tolInputIter.value);
+    const nmax = Number(nmaxInputIter.value);
+    const w = Number(wInputIter.value);
+    const method = methodSelect.value;
+
+    let result;
+    
+    if (method === 'jacobi') {
+        result = jacobi(A, b, x0, tol, nmax);
+    } else if (method === 'gauss_seidel') {
+        result = gauss_seidel(A, b, x0, tol, nmax);
+    } else if (method === 'sor') {
+        result = sor(A, b, x0, w, tol, nmax);
+    }
+    
+    const { x, T, C, rows } = result;
+    const radius = spectralRadius(T);
+    
+    setHTML(summaryIter, msgCard('success', 'Ejecución Completa', `Método: ${methodSelect.options[methodSelect.selectedIndex].text}`));
+    
+    let radiusMsg = `Radio Espectral (ρ(T)): ${radius.toFixed(6)}`;
+    if (radius < 1) {
+        setHTML(spectralRadiusBox, msgCard('ok', 'Convergencia Garantizada', radiusMsg));
+    } else {
+        setHTML(spectralRadiusBox, msgCard('warn', 'Convergencia NO Garantizada', radiusMsg));
+    }
+    
+    // Renderizar tabla de iteraciones
+    const n = A.length;
+    const headers = ['k', ...Array.from({length: n}, (_, i) => `x${i}`), 'E'];
+    const thead = '<thead><tr>' + headers.map(h => `<th>${h}</th>`).join('') + '</tr></thead>';
+    const tbody = '<tbody>' + rows.map(r => 
+        '\n<tr>' + r.map(c => `<td class="num">${c}</td>`).join('') + '</tr>'
+    ).join('') + '\n</tbody>';
+    setHTML(iterTable, thead + tbody);
+    
+  } catch (e) {
+    setHTML(alertsIter, msgCard('error', 'Error de Ejecución', e.message));
+  }
+}
+
+function runInterpolation() {
+  setHTML(alertsInter, '');
+  setHTML(summaryInter, '');
+  setHTML(resultsInter, '');
+  Plotly.purge(plotInter);
+  
+  try {
+    const { x, y } = parsePoints(pointsInput.value);
+    if (x.length < 2) throw new Error("Se necesitan al menos 2 puntos.");
+    
+    const method = methodSelect.value;
+    let resultHtml = '';
+    
+    if (method === 'vandermonde') {
+        const { V, a, polyStr } = vandermonde(x, y);
+        resultHtml += matrixToHTML(V, 'Matriz de Vandermonde (V):');
+        resultHtml += vectorToHTML(a, 'Coeficientes c (de Vc = y):');
+        resultHtml += `<h4>Polinomio P(x):</h4><div class="matrix-display">${polyStr}</div>`;
+        plotPoly('vandermonde', x, y, a);
+    } else if (method === 'newton') {
+        const { table, coeffs, polyStr } = newton_divided_differences(x, y);
+        resultHtml += matrixToHTML(table, 'Tabla de Diferencias Divididas:');
+        resultHtml += `<h4>Polinomio P(x) (Forma de Newton):</h4><div class="matrix-display">${polyStr}</div>`;
+        // Plotting Newton es más complejo, omitido por ahora
+        plotPoly('newton', x, y, null);
+    } else if (method === 'lagrange') {
+        const { polyStr } = lagrange(x, y);
+        resultHtml += `<h4>Polinomio P(x) (Forma de Lagrange):</h4><div class="matrix-display">${polyStr}</div>`;
+        // Plotting Lagrange es más complejo, omitido por ahora
+        plotPoly('lagrange', x, y, null);
+    } else if (method === 'spline_linear') {
+        const { coefs, polyStrs } = linear_splines(x, y);
+        resultHtml += '<h4>Trazadores Lineales:</h4>';
+        resultHtml += `<div class="matrix-display">${polyStrs.join('\n')}</div>`;
+        plotSpline('spline_linear', coefs, x, y);
+    } else if (method === 'spline_quadratic') {
+        const { coefs, polyStrs } = quadratic_splines(x, y);
+        resultHtml += '<h4>Trazadores Cuadráticos:</h4>';
+        resultHtml += `<div class="matrix-display">${polyStrs.join('\n')}</div>`;
+        plotSpline('spline_quadratic', coefs, x, y);
+    } else if (method === 'spline_cubic') {
+        const { coefs, polyStrs } = cubic_splines_natural(x, y);
+        resultHtml += '<h4>Trazadores Cúbicos (Naturales):</h4>';
+        resultHtml += `<div class="matrix-display">${polyStrs.join('\n')}</div>`;
+        plotSpline('spline_cubic', coefs, x, y);
+    }
+    
+    setHTML(summaryInter, msgCard('success', 'Ejecución Completa', `Método: ${methodSelect.options[methodSelect.selectedIndex].text}`));
+    setHTML(resultsInter, resultHtml);
+    
+  } catch (e) {
+    setHTML(alertsInter, msgCard('error', 'Error de Ejecución', e.message));
+  }
+}
+
+
+/* ================= Control de Visibilidad y Pestañas ================= */
+
+function populateMethodsFor(mode) {
+  const list = METHODS[mode] || [];
+  methodSelect.innerHTML = '';
+  for (const m of list) {
+    const opt = document.createElement('option');
+    opt.value = m.value; opt.textContent = m.label;
+    methodSelect.appendChild(opt);
+  }
+  showGuide();
+}
+
+function showGuide() {
+  const m = methodSelect.value;
+  const g = METHOD_GUIDES[m];
+  if (!g) {
+    setHTML(guideBox, msgCard('info', 'Guía del Método', 'Seleccione un método.'));
+    return;
+  }
+  setHTML(guideBox, msgCard('info', g.title, g.body));
+}
+
+function setMode(newMode) {
+  appMode = newMode;
+  
+  // Paneles
+  directSystemPanel.classList.toggle('hidden', newMode !== 'direct');
+  iterativeSystemPanel.classList.toggle('hidden', newMode !== 'iterative');
+  interpolationPanel.classList.toggle('hidden', newMode !== 'interpolation');
+  
+  // Pestañas
+  tabDirect.classList.toggle('btn-primary', newMode === 'direct');
+  tabDirect.classList.toggle('btn-soft', newMode !== 'direct');
+  tabIterative.classList.toggle('btn-primary', newMode === 'iterative');
+  tabIterative.classList.toggle('btn-soft', newMode !== 'iterative');
+  tabInterpolation.classList.toggle('btn-primary', newMode === 'interpolation');
+  tabInterpolation.classList.toggle('btn-soft', newMode !== 'interpolation');
+  
+  tabDirect.setAttribute('aria-pressed', newMode === 'direct');
+  tabIterative.setAttribute('aria-pressed', newMode === 'iterative');
+  tabInterpolation.setAttribute('aria-pressed', newMode === 'interpolation');
+  
+  populateMethodsFor(newMode);
+  syncVisibility();
+}
+
+function syncVisibility() {
+  const m = methodSelect.value;
+  // Ocultar/mostrar grupo de 'w' para SOR
+  wGroupIter.classList.toggle('hidden', m !== 'sor');
+  showGuide();
+}
+
+// Limpiar entradas
+function resetInputs() {
+    if (appMode === 'direct') {
+        AInputDirect.value = "4 -1 0 3\n1 15.5 3 8\n0 -1.3 -4 1.1\n14 5 -2 30";
+        bVecInputDirect.value = "1 1 1 1";
+        setHTML(alertsDirect, ''); setHTML(summaryDirect, ''); setHTML(resultsDirect, '');
+    } else if (appMode === 'iterative') {
+        AInputIter.value = "4 -1 0 3\n1 15.5 3 8\n0 -1.3 -4 1.1\n14 5 -2 30";
+        bVecInputIter.value = "1 1 1 1";
+        x0InputIter.value = "0 0 0 0";
+        tolInputIter.value = "1e-7";
+        nmaxInputIter.value = "100";
+        wInputIter.value = "1.5";
+        setHTML(alertsIter, ''); setHTML(summaryIter, ''); setHTML(spectralRadiusBox, ''); setHTML(iterTable, '');
+    } else if (appMode === 'interpolation') {
+        pointsInput.value = "-1, 15.5\n0, 3\n3, 8\n4, 1";
+        setHTML(alertsInter, ''); setHTML(summaryInter, ''); setHTML(resultsInter, '');
+        Plotly.purge(plotInter);
+    }
+}
+
+
+/* ================= Event Listeners ================= */
+tabDirect.addEventListener('click', () => setMode('direct'));
+tabIterative.addEventListener('click', () => setMode('iterative'));
+tabInterpolation.addEventListener('click', () => setMode('interpolation'));
+methodSelect.addEventListener('change', syncVisibility);
+resetBtn.addEventListener('click', resetInputs);
+
+runBtn.addEventListener('click', () => {
+  if (appMode === 'direct') {
+    runDirect();
+  } else if (appMode === 'iterative') {
+    runIterative();
+  } else if (appMode === 'interpolation') {
+    runInterpolation();
+  }
+});
+
+/* ================= Init ================= */
+function populateAndInit() {
+  setMode('direct'); // Iniciar en la primera pestaña
+}
+populateAndInit();
+</script>
+</body>
+</html>
