@@ -489,7 +489,7 @@ const METHODS = {
 };
 /* INICIO DE REEMPLAZO (const METHOD_GUIDES) */
 
-// UX Guides for each method (UPDATED with MathJax Formatting - CORRECTED SYNTAX)
+// UX Guides for each method (UPDATED with MathJax Formatting)
 const METHOD_GUIDES = {
   // === ROOT FINDING GUIDES ===
   incremental: { 
@@ -514,7 +514,7 @@ const METHOD_GUIDES = {
     title: 'False Position Method Guide', 
     body: [
         '**Inputs:** Function $f(x)$, Interval $[a, b]$, Tolerance.',
-        '**Goal:** A bracketing method, often faster than Bisection, that uses a linear interpolation (a "secant" line) to estimate the next root.',
+        '**Goal:** A bracketing method, often faster than Bisection, that uses a linear interpolation (a \"secant\" line) to estimate the next root.',
         '**Theorem:** Requires the same conditions as Bisection: $f$ must be continuous and **$f(a) \cdot f(b) < 0$**.',
         '**Note:** While often faster, it can converge very slowly if the function is highly convex or concave near the root.'
     ]
@@ -522,21 +522,21 @@ const METHOD_GUIDES = {
   fixedPoint: { 
     title: 'Fixed Point Method Guide', 
     body: [
-        "**Inputs:** Function $f(x)$ (for finding root), Function $g(x)$ (for iteration $x = g(x)$), Initial Guess $x_0$, Tolerance.",
-        "**Goal:** Finds a solution $x_v$ such that $x_v = g(x_v)$, which is a root of $f(x)$ if $f(x)$ is formulated as $f(x) = x - g(x)$.",
+        '**Inputs:** Function $f(x)$ (for finding root), Function $g(x)$ (for iteration $x = g(x)$), Initial Guess $x_0$, Tolerance.',
+        '**Goal:** Finds a solution $x_v$ such that $x_v = g(x_v)$, which is a root of $f(x)$ if $f(x)$ is formulated as $f(x) = x - g(x)$.',
         '**Theorem (Fixed Point):** Convergence is guaranteed if $g(x)$ has a unique fixed point in $[a,b]$. This requires two conditions:',
         '1. $g(x)$ is continuous and maps $[a,b]$ into itself (i.e., for every $x \in [a,b]$, $g(x)$ is also in $[a,b]$).',
-        "2. The derivative $g'(x)$ exists and there is a constant $k < 1$ such that **$|g'(x)| \le k$** for all $x \in (a,b)$ (Contractive Mapping).",
+        '2. The derivative $g\'(x)$ exists and there is a constant $k < 1$ such that **$|g\'(x)| \le k$** for all $x \in (a,b)$ (Contractive Mapping).',
         '**Convergence:** This method has **linear convergence**.'
     ]
   },
   newton: { 
     title: 'Newton-Raphson Method Guide', 
     body: [
-        "**Inputs:** Function $f(x)$, Initial Guess $x_0$, Tolerance. Optional: $f'(x)$.",
-        "**Goal:** Finds a root using tangent lines. It is derived from a Fixed Point iteration where $g(x) = x - f(x)/f'(x)$.",
+        '**Inputs:** Function $f(x)$, Initial Guess $x_0$, Tolerance. Optional: $f\'(x)$.',
+        '**Goal:** Finds a root using tangent lines. It is derived from a Fixed Point iteration where $g(x) = x - f(x)/f\'(x)$.',
         '**Theorem:** Requires $f(x)$ to be twice-differentiable ($f \in C^2[a,b]$).',
-        "**Conditions:** The method requires $x_0$ to be 'sufficiently close' to the root $x_v$, and the root must be simple (i.e., **$f'(x_v) \neq 0$**). The app will warn if $f'(x)$ is near zero during iteration.",
+        '**Conditions:** The method requires $x_0$ to be \"sufficiently close\" to the root $x_v$, and the root must be simple (i.e., **$f\'(x_v) \neq 0$**). The app will warn if $f\'(x)$ is near zero during iteration.',
         '**Convergence:** This method has **quadratic convergence** (order 2), which is very fast.'
     ]
   },
@@ -544,19 +544,19 @@ const METHOD_GUIDES = {
     title: 'Secant Method Guide', 
     body: [
         '**Inputs:** Function $f(x)$, Initial Guess $x_0$, Second Guess $x_1$, Tolerance.',
-        "**Goal:** A modification of Newton's method that does not require an analytic derivative.",
-        "**Theory:** It approximates the derivative $f'(x_n)$ using the slope of the secant line between the two previous points, $x_n$ and $x_{n-1}$.",
+        '**Goal:** A modification of Newton's method that does not require an analytic derivative.',
+        '**Theory:** It approximates the derivative $f\'(x_n)$ using the slope of the secant line between the two previous points, $x_n$ and $x_{n-1}$.',
         '**Formula:** $$x_{n+1} = x_n - \frac{f(x_n)(x_n - x_{n-1})}{f(x_n) - f(x_{n-1})}$$',
-        '**Convergence:** This method has **superlinear convergence** (order $\approx 1.62$). It is slower than Newton but faster than linear methods.'
+        '**Convergence:** This method has **superlinear convergence** (order \approx 1.62). It is slower than Newton but faster than linear methods.'
     ]
   },
   multiple: { 
     title: 'Multiple Roots (Mod. Newton)', 
     body: [
-        "**Inputs:** Function $f(x)$, Initial Guess $x_0$, Tolerance. Optional: $f'(x)$, $f''(x)$.",
-        "**Goal:** A modification of Newton's method to find roots with multiplicity $m > 1$.",
-        "**Theorem:** A root $x_v$ has multiplicity $m$ if $f(x_v) = f'(x_v) = ... = f^{(m-1)}(x_v) = 0$, but $f^{(m)}(x_v) \neq 0$.",
-        "**Formula:** This app uses the standard modified formula which restores quadratic convergence: $$x_{n+1} = x_n - \frac{f(x_n)f'(x_n)}{[f'(x_n)]^2 - f(x_n)f''(x_n)}$$"
+        '**Inputs:** Function $f(x)$, Initial Guess $x_0$, Tolerance. Optional: $f\'(x)$, $f\''(x)$.',
+        '**Goal:** A modification of Newton's method to find roots with multiplicity $m > 1$.',
+        '**Theorem:** A root $x_v$ has multiplicity $m$ if $f(x_v) = f\'(x_v) = ... = f^{(m-1)}(x_v) = 0$, but $f^{(m)}(x_v) \neq 0$.',
+        '**Formula:** This app uses the standard modified formula which restores quadratic convergence: $$x_{n+1} = x_n - \frac{f(x_n)f\'(x_n)}{[f\'(x_n)]^2 - f(x_n)f\''(x_n)}$$'
     ]
   },
   
@@ -585,7 +585,7 @@ const METHOD_GUIDES = {
         '**Inputs:** Matrix A, Vector b.',
         '**Goal:** The most numerically stable (but computationally expensive) pivoting strategy.',
         '**Theory:** At each step $k$, the algorithm searches the entire active submatrix (from $A[k,k]$ to $A[n,n]$) for the largest absolute value. It then performs *both* row and column swaps to move this element to the pivot position $A[k,k]$.',
-        '**Result:** Shows all steps. The final solution $x$ must be "un-permuted" based on the column swaps.'
+        '**Result:** Shows all steps. The final solution $x$ must be \"un-permuted\" based on the column swaps.'
     ]
   },
   lu_gaussian: { 
@@ -639,7 +639,9 @@ const METHOD_GUIDES = {
         '**Inputs:** Matrix A, Vector b, Initial Vector $x_0$, Tolerance.',
         '**Goal:** Solves $Ax=b$ iteratively by isolating the diagonal. $x^{(k)} = T_J x^{(k-1)} + C_J$.',
         '**Condition:** The method requires that there are **no zeros on the diagonal** of A.',
-        '**Convergence:** Convergence is guaranteed if A is **diagonally dominant**. The app will check the spectral radius of the iteration matrix T, $\rho(T)$. Convergence occurs if and only if $\rho(T) < 1$.'
+        '**Convergence:** Convergence is guaranteed if A is **diagonally dominant**. The app will check the spectral radius of the iteration matrix T, $\
+ho(T)$. Convergence occurs if and only if $\
+ho(T) < 1$.'
     ] 
   },
   gauss_seidel: { 
@@ -648,7 +650,9 @@ const METHOD_GUIDES = {
         '**Inputs:** Matrix A, Vector b, Initial Vector $x_0$, Tolerance.',
         '**Goal:** An improvement on Jacobi that uses the new $x_i$ values as soon as they are computed in the *same* iteration.',
         '**Condition:** Requires **no zeros on the diagonal** of A.',
-        '**Convergence:** Often converges faster than Jacobi. Guaranteed if A is diagonally dominant or symmetric positive-definite. The app will check the spectral radius $\rho(T)$; convergence occurs if $\rho(T) < 1$.'
+        '**Convergence:** Often converges faster than Jacobi. Guaranteed if A is diagonally dominant or symmetric positive-definite. The app will check the spectral radius $\
+ho(T)$; convergence occurs if $\
+ho(T) < 1$.'
     ] 
   },
   sor: { 
@@ -657,10 +661,10 @@ const METHOD_GUIDES = {
         '**Inputs:** Matrix A, Vector b, Initial Vector $x_0$, Tolerance, and Relaxation ($\omega$).',
         '**Goal:** An accelerated version of Gauss-Seidel.',
         '**Condition:** Requires **no zeros on the diagonal**. The parameter $\omega$ ("omega") controls the relaxation. If $\omega=1$, SOR is identical to Gauss-Seidel. If $0 < \omega < 1$, it is "under-relaxation". If $1 < \omega < 2$, it is "over-relaxation".',
-        '**Convergence:** Must have $0 < \omega < 2$. The optimal $\omega$ is problem-specific. The app will check $\rho(T_\omega)$.'
+        '**Convergence:** Must have $0 < \omega < 2$. The optimal \omega is problem-specific. The app will check $\rho(T_\omega)$.
     ] 
   },
-  
+
   // === INTERPOLATION GUIDES ===
   vandermonde: { 
     title: 'Vandermonde Interpolation', 
@@ -668,7 +672,7 @@ const METHOD_GUIDES = {
         '**Inputs:** A list of (x, y) data points.',
         '**Goal:** Finds the *single* polynomial $p(x) = a_n x^n + ... + a_0$ that passes through all $n+1$ points.',
         '**Theory:** This method builds a system of $n+1$ linear equations by plugging each point $(x_i, y_i)$ into the polynomial form. This creates the **Vandermonde Matrix** $V$, and solves $Va = y$ for the coefficients $a$.',
-        '**Warning:** This method is **numerically unstable** for a large number of points ($n > 10$). The matrix $V$ becomes ill-conditioned. The PDF explicitly states this method is **"no recomendable"** (not recommended).'
+        '**Warning:** This method is **numerically unstable** for a large number of points ($n > 10$). The matrix $V$ becomes ill-conditioned. The PDF explicitly states this method is **\"no recomendable\"** (not recommended).'
     ] 
   },
   newton: { 
@@ -685,7 +689,7 @@ const METHOD_GUIDES = {
     body: [
         '**Inputs:** A list of (x, y) data points.',
         '**Goal:** A different formulation for the unique interpolating polynomial.',
-        '**Theory:** Builds the polynomial as a sum of weighted "basis polynomials" $L_k(x)$. The formula is: $$p(x) = \sum_{k=0}^{n} L_k(x) f(x_k)$$',
+        '**Theory:** Builds the polynomial as a sum of weighted \"basis polynomials\" $L_k(x)$. The formula is: $$p(x) = \\sum_{k=0}^{n} L_k(x) f(x_k)$$',
         'Each $L_k(x)$ is a polynomial of degree $n$ that is 1 at $x_k$ and 0 at all other $x_j$.',
         '**Advantage:** Conceptually simple and does not require solving a system of equations.'
     ] 
@@ -695,7 +699,7 @@ const METHOD_GUIDES = {
     body: [
         '**Inputs:** A list of (x, y) data points.',
         '**Goal:** Connects consecutive data points with straight lines (piecewise polynomials of degree 1).',
-        '**Continuity:** The resulting spline $p(x)$ is **Continuous ($C^0$)**, meaning the pieces connect, but the derivative (slope) "jumps" at each point. This is *not* smooth.'
+        '**Continuity:** The resulting spline $p(x)$ is **Continuous ($C^0$)**, meaning the pieces connect, but the derivative (slope) \"jumps\" at each point. This is *not* smooth.'
     ] 
   },
   spline_quadratic: { 
@@ -703,7 +707,7 @@ const METHOD_GUIDES = {
     body: [
         '**Inputs:** A list of (x, y) data points (at least 3).',
         '**Goal:** Connects points with parabolas (piecewise polynomials of degree 2).',
-        "**Continuity:** The spline $p(x)$ is **$C^1$ Smooth**. This means it is continuous ($C^0$) and its first derivative $p'(x)$ is also continuous. The 'corners' are smoothed out. This app enforces $p_1''(x_1) = 0$ as a boundary condition."
+        '**Continuity:** The spline $p(x)$ is **$C^1$ Smooth**. This means it is continuous ($C^0$) and its first derivative $p\'(x)$ is also continuous. The \"corners\" are smoothed out. This app enforces $p_1\''(x_1) = 0$ as a boundary condition.'
     ] 
   },
   spline_cubic: { 
@@ -711,13 +715,13 @@ const METHOD_GUIDES = {
     body: [
         '**Inputs:** A list of (x, y) data points (at least 3).',
         '**Goal:** Connects points with cubic polynomials (degree 3). This is the most common and smoothest spline.',
-        "**Continuity:** The spline $p(x)$ is **$C^2$ Smooth**. It is continuous ($C^0$), has a continuous first derivative ($C^1$), and a continuous second derivative ($C^2$).",
-        "**Condition:** This app uses **'Natural Splines'**, which sets the second derivative at the endpoints to zero: $p''(x_0) = 0$ and $p''(x_n) = 0$."
+        '**Continuity:** The spline $p(x)$ is **$C^2$ Smooth**. It is continuous ($C^0$), has a continuous first derivative ($C^1$), and a continuous second derivative ($C^2$).',
+        '**Condition:** This app uses **\"Natural Splines\"**, which sets the second derivative at the endpoints to zero: $p\''(x_0) = 0$ and $p\''(x_n) = 0$.'
     ] 
   }
-};
-/* FIN DE REEMPLAZO */
+  };
 
+/* FIN DE REEMPLAZO */
 
 /* ================= App State ================= */
 let appMode = 'root'; // 'root' | 'direct' | 'iterative' | 'interpolation'
