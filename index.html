@@ -728,7 +728,7 @@ function parseVector(text, n_expected = null) {
   return arr;
 }
 function parsePoints(text) {
-    const points = String(text).trim().split(/\n+/).map(line => 
+    const points = String(text).trim().split(/\n+/).map(line =>
         line.trim().split(/[\s,]+/).filter(Boolean).map(Number)
     );
     if (points.some(p => p.length !== 2 || !Number.isFinite(p[0]) || !Number.isFinite(p[1]))) {
@@ -737,6 +737,28 @@ function parsePoints(text) {
     const x = points.map(p => p[0]);
     const y = points.map(p => p[1]);
     return { x, y };
+}
+
+function polyToString(coeffs = []) {
+  if (!Array.isArray(coeffs) || coeffs.length === 0) return '0';
+  const n = coeffs.length;
+  let str = '';
+  coeffs.forEach((coef, idx) => {
+    if (Math.abs(coef) < 1e-12) return;
+    const power = n - 1 - idx;
+    const sign = coef >= 0 ? '+' : '-';
+    const absVal = Math.abs(coef).toFixed(6);
+    let term = absVal;
+    if (power > 0) {
+      term += 'x' + (power > 1 ? `^${power}` : '');
+    }
+    if (!str) {
+      str = sign === '-' ? `-${term}` : term;
+    } else {
+      str += ` ${sign} ${term}`;
+    }
+  });
+  return str || '0';
 }
 
 // Matrix formatting and linear algebra helpers
@@ -960,6 +982,81 @@ function plotFx(phi,a,b,iterXs=[],label='iter'){
   } catch(e){
     setHTML(alertsBoxRoot, msgCard('error','Plot error',[e.message||'Could not plot f(x).']));
     Plotly.purge(plotDiv);
+  }
+}
+
+function buildInterpolator(method, x, y, extra = {}) {
+  if (method === 'vandermonde') {
+    const coeffs = extra.coeffs || [];
+    return (val) => coeffs.reduce((acc, c, idx) => acc + c * Math.pow(val, coeffs.length - 1 - idx), 0);
+  }
+  if (method === 'newton') {
+    const coeffs = extra.coeffs || [];
+    return (val) => {
+      if (!coeffs.length) return 0;
+      let total = coeffs[0];
+      let prod = 1;
+      for (let i = 1; i < coeffs.length; i++) {
+        prod *= (val - x[i - 1]);
+        total += coeffs[i] * prod;
+      }
+      return total;
+    };
+  }
+  // Default to Lagrange form using the raw points
+  return (val) => {
+    let total = 0;
+    for (let i = 0; i < x.length; i++) {
+      let basis = 1;
+      for (let j = 0; j < x.length; j++) {
+        if (i === j) continue;
+        basis *= (val - x[j]) / (x[i] - x[j]);
+      }
+      total += y[i] * basis;
+    }
+    return total;
+  };
+}
+
+function plotPoly(method, x, y, extra = {}) {
+  try {
+    const evalPoly = buildInterpolator(method, x, y, extra);
+    const minX = Math.min(...x);
+    const maxX = Math.max(...x);
+    const padding = Math.max((maxX - minX) * 0.15, 1e-3);
+    const xsPlot = linspace(minX - padding, maxX + padding, 240);
+    const ysPlot = xsPlot.map(evalPoly);
+    const traces = [
+      { x: xsPlot, y: ysPlot, mode: 'lines', type: 'scatter', name: 'P(x)', line: { width: 3, color: '#7c3aed' } },
+      { x, y, mode: 'markers', type: 'scatter', name: 'Data', marker: { size: 9, color: '#111827' } }
+    ];
+    Plotly.newPlot(plotInter, traces, { title: 'Interpolation Plot', margin: { l: 40, r: 16, t: 40, b: 40 }, xaxis: { title: 'x' }, yaxis: { title: 'y' } }, { displayModeBar: false, responsive: true });
+  } catch (err) {
+    setHTML(alertsInter, msgCard('err', 'Plot Error', err.message || 'Unable to plot polynomial.'));
+    Plotly.purge(plotInter);
+  }
+}
+
+function evalSplineSegment(method, coef, val) {
+  if (method === 'spline_linear') return coef.m * val + coef.c;
+  if (method === 'spline_quadratic') return coef.a * Math.pow(val, 2) + coef.b * val + coef.c;
+  if (method === 'spline_cubic') return coef.a * Math.pow(val, 3) + coef.b * Math.pow(val, 2) + coef.c * val + coef.d;
+  return NaN;
+}
+
+function plotSpline(method, coefs, x, y) {
+  try {
+    const traces = [];
+    for (let i = 0; i < coefs.length; i++) {
+      const xsSegment = linspace(x[i], x[i + 1], 60);
+      const ysSegment = xsSegment.map(val => evalSplineSegment(method, coefs[i], val));
+      traces.push({ x: xsSegment, y: ysSegment, mode: 'lines', type: 'scatter', name: `S${i}(x)` });
+    }
+    traces.push({ x, y, mode: 'markers', type: 'scatter', name: 'Data', marker: { size: 9, color: '#111827' } });
+    Plotly.newPlot(plotInter, traces, { title: 'Spline Plot', margin: { l: 40, r: 16, t: 40, b: 40 }, xaxis: { title: 'x' }, yaxis: { title: 'y' } }, { displayModeBar: false, responsive: true });
+  } catch (err) {
+    setHTML(alertsInter, msgCard('err', 'Plot Error', err.message || 'Unable to plot spline.'));
+    Plotly.purge(plotInter);
   }
 }
 // Render table, truncated if necessary (UI)
@@ -2178,7 +2275,7 @@ function runInterpolation() {
         resultHtml += matrixToHTML(V, 'Vandermonde Matrix (V):');
         resultHtml += vectorToHTML(a, 'Coefficients a (from Va = y):');
         resultHtml += `<h4>Polynomial P(x):</h4><div class="code">${polyStr}</div>`;
-        plotPoly('vandermonde', x, y, a);
+        plotPoly('vandermonde', x, y, { coeffs: a });
         summaryHTML = `<div><b>Poly:</b> ${polyStr.substring(0, 20)}...</div>`;
     } else if (method === 'newton') {
         const { table, coeffs, polyStr } = NumericalMethods.newton_divided_differences(x, y);
@@ -2187,12 +2284,12 @@ function runInterpolation() {
             coeffs.map((coeff, i) => `<tr><td class="num">${fmt(coeff)}</td></tr>`).join('')
         }</tbody></table></div>`;
         resultHtml += `<h4>Polynomial P(x) (Newton Form):</h4><div class="code">${polyStr}</div>`;
-        plotPoly('newton', x, y, null);
+        plotPoly('newton', x, y, { coeffs });
         summaryHTML = `<div><b>Coeffs:</b> [${coeffs.map(v=>fmt(v,2)).join(', ')}]</div>`;
     } else if (method === 'lagrange') {
         const { polyStr } = NumericalMethods.lagrange(x, y);
         resultHtml += `<h4>Polynomial P(x) (Lagrange Form):</h4><div class="code">${polyStr}</div>`;
-        plotPoly('lagrange', x, y, null);
+        plotPoly('lagrange', x, y);
         summaryHTML = `<div><b>Points:</b> ${x.length}</div>`;
     } else if (method === 'spline_linear') {
         const { coefs, polyStrs } = NumericalMethods.linear_splines(x, y);
