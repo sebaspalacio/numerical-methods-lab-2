@@ -44,6 +44,16 @@
     .num{ font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; /* Se fueron display:flex, width:100%, etc. */ }
     .code{ font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; background:#f8fafc; padding:.15rem .35rem; border-radius:8px; font-size:.85rem; }
     .matrix-display { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; white-space: pre; background: #f8fafc; padding: 0.75rem; border-radius: 12px; border: 1px solid #e5e7eb; overflow-x: auto; }
+    .math-display {
+      font-size: 1.25rem;
+      font-weight: 500;
+      color: var(--c-primary);
+      text-align: center;
+      padding: 0.5rem;
+      border: 1px solid #e5e7eb;
+      border-radius: 14px;
+      min-height: 3.5rem;
+    }
 
     .grid-2{ display:grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
     @media (max-width: 1024px){ .grid-2{ grid-template-columns:1fr; } }
@@ -67,6 +77,21 @@
     .table .pivot { background:#fef3c7; font-weight:700; } /* amber */
     .table .diag  { background:#ecfeff; }                  /* cyan */
   </style>
+  <script>
+    MathJax = {
+      tex: {
+        inlineMath: [['$', '$'], ['\\(', '\\)']],
+        displayMath: [['$$', '$$'], ['\\[', '\\]']],
+        processEscapes: true
+      },
+      svg: {
+        fontCache: 'global'
+      }
+    };
+  </script>
+  <script type="text/javascript" id="MathJax-script" async
+    src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js">
+  </script>
 </head>
 <body class="min-h-screen">
   <div class="max-w-7xl mx-auto p-4 lg:p-8">
@@ -123,6 +148,7 @@
       <div class="grid-2">
         <div>
           <h2 class="text-lg font-semibold mb-3">Inputs — Root Finding</h2>
+          <div id="functionDisplayRoot" class="math-display mb-3"></div>
           <!-- NEW: Defaults from Prueba_metodos.pdf -->
           <label class="block text-sm font-semibold mb-1">Function f(x)</label>
           <input id="fxInput" class="input" value="log(sin(x)**2 + 1) - 0.5" placeholder="Example: x**3 - 7*x + 6" />
@@ -1919,10 +1945,27 @@ function runRoot(){
   let f, g = null, fprime = null, f2prime = null;
   let a, b, x0, x1, tol, kmax, delta, nmax;
   const m = methodSelect.value;
-  
+
   try {
+    const displayEl = document.getElementById('functionDisplayRoot');
+    if (displayEl) {
+      const fxStr = fxInput.value.trim();
+      if (fxStr) {
+        const latexStr = fxStr
+          .replace(/\*\*/g, '^')
+          .replace(/\*/g, ' \\cdot ');
+
+        displayEl.innerHTML = `$$ f(x) = ${latexStr} $$`;
+
+        if (window.MathJax && window.MathJax.typesetPromise) {
+          window.MathJax.typesetPromise([displayEl]);
+        }
+      } else {
+        displayEl.innerHTML = '';
+      }
+    }
     // 1. Validate all inputs first
-    const vfx = validateExprInput('f(x)', fxInput.value); 
+    const vfx = validateExprInput('f(x)', fxInput.value);
     if(!vfx.ok){ setHTML(alertBox, msgCard('err','Error: Invalid Input', vfx.msg)); return; }
     f=buildFn(vfx.expr);
     
