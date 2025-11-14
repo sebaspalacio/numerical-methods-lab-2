@@ -1060,6 +1060,7 @@ function plotSpline(method, coefs, x, y) {
   }
 }
 // Render table, truncated if necessary (UI)
+/* DESPUÉS (Corregido) - Pega esto */
 function renderTable(headers, rows, target){
   let displayRows = rows;
   if (rows.length > 8) { // e.g., 3 + 1 ellipsis + 3
@@ -1069,9 +1070,21 @@ function renderTable(headers, rows, target){
           ...rows.slice(-3)
       ];
   }
-  const thead='<thead><tr>'+headers.map(h=>`<th>${h}</th>`).join('')+'</tr></thead>';
-  const tbody='<tbody>'+displayRows.map(r=>'\n<tr>'+r.map(c=>`<td class="num">${c}</td>`).join('')+'</tr>').join('')+'\n</tbody>';
-  target.innerHTML=thead+tbody;
+  
+  // 1. Crea la cabecera
+  const thead = '<thead><tr>' + headers.map(h => `<th>${h}</th>`).join('') + '</tr></thead>';
+  
+  // 2. Crea las filas del cuerpo (solo los <tr>)
+  const bodyRows = displayRows.map(r => {
+    const cells = r.map(c => `<td class="num">${c}</td>`).join('');
+    return `\n<tr>${cells}</tr>`;
+  }).join('');
+  
+  // 3. Envuelve TODAS las filas en UN SOLO <tbody>
+  const tbody = `<tbody>${bodyRows}\n</tbody>`;
+  
+  // 4. Asigna el HTML
+  target.innerHTML = thead + tbody;
 }
 // NEW: Helper to render the augmented matrix step (from index (1).txt)
 function renderAugmentedMatrixHTML(Ab, kPivot=null){
