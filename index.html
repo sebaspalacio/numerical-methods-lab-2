@@ -544,7 +544,7 @@ const METHOD_GUIDES = {
     title: 'Secant Method Guide', 
     body: [
         '**Inputs:** Function $f(x)$, Initial Guess $x_0$, Second Guess $x_1$, Tolerance.',
-        '**Goal:** A modification of Newton's method that does not require an analytic derivative.',
+        '**Goal:** A modification of Newton\'s method that does not require an analytic derivative.',
         '**Theory:** It approximates the derivative $f\'(x_n)$ using the slope of the secant line between the two previous points, $x_n$ and $x_{n-1}$.',
         '**Formula:** $$x_{n+1} = x_n - \frac{f(x_n)(x_n - x_{n-1})}{f(x_n) - f(x_{n-1})}$$',
         '**Convergence:** This method has **superlinear convergence** (order \approx 1.62). It is slower than Newton but faster than linear methods.'
@@ -554,7 +554,7 @@ const METHOD_GUIDES = {
     title: 'Multiple Roots (Mod. Newton)', 
     body: [
         '**Inputs:** Function $f(x)$, Initial Guess $x_0$, Tolerance. Optional: $f\'(x)$, $f\''(x)$.',
-        '**Goal:** A modification of Newton's method to find roots with multiplicity $m > 1$.',
+        '**Goal:** A modification of Newton\'s method to find roots with multiplicity $m > 1$.',
         '**Theorem:** A root $x_v$ has multiplicity $m$ if $f(x_v) = f\'(x_v) = ... = f^{(m-1)}(x_v) = 0$, but $f^{(m)}(x_v) \neq 0$.',
         '**Formula:** This app uses the standard modified formula which restores quadratic convergence: $$x_{n+1} = x_n - \frac{f(x_n)f\'(x_n)}{[f\'(x_n)]^2 - f(x_n)f\''(x_n)}$$'
     ]
@@ -676,7 +676,7 @@ ho(T) < 1$.'
     ] 
   },
   newton: { 
-    title: 'Newton's Polynomial (Divided Diffs)', 
+    title: 'Newton\'s Polynomial (Divided Diffs)', 
     body: [
         '**Inputs:** A list of (x, y) data points.',
         '**Goal:** Builds the *same* unique interpolating polynomial as Vandermonde, but in a more stable form.',
