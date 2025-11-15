@@ -521,6 +521,28 @@ function clearAllAlerts() {
     setHTML(alertsInter, '');
 }
 
+function clearAllOutputs() {
+  // Limpiar Root Finding
+  setHTML(summaryBoxRoot, '');
+  setHTML(iterTableRoot, '');
+  Plotly.purge(plotDiv);
+
+  // Limpiar Direct Systems
+  setHTML(summaryDirect, '');
+  setHTML(resultsDirect, '');
+  stepsBox.classList.add('hidden');
+
+  // Limpiar Iterative Systems
+  setHTML(summaryIter, '');
+  setHTML(spectralRadiusBox, '');
+  setHTML(iterTableIterative, '');
+
+  // Limpiar Interpolation
+  setHTML(summaryInter, '');
+  setHTML(resultsInter, '');
+  Plotly.purge(plotInter);
+}
+
 // Get the correct alert box for the current mode
 function getActiveAlertsBox() {
     if (appMode === 'root') return alertsBoxRoot;
@@ -2308,6 +2330,7 @@ function setMode(newMode) {
   populateMethodsFor(newMode);
   syncVisibility(); // Ensure correct inputs are shown
   clearAllAlerts(); // Clear status when changing modes
+  clearAllOutputs();
 }
 
 // Show/hide specific input fields based on the selected method
