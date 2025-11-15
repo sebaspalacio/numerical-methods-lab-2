@@ -521,7 +521,16 @@ function msgCard(type, title, lines){
                 (type === 'warn') ? 'warn' :
                 (type === 'info') ? 'info' :
                 (type === 'recommend') ? 'recommend' : 'warn'; // Default to warn
-  const body = (Array.isArray(lines)? lines: [lines]).map(p=>`<p class="hint">${p}</p>`).join('');
+  
+  // Unir todas las líneas en un solo string, separado por saltos de línea
+  let bodyString = Array.isArray(lines) ? lines.join('<br>') : lines;
+  
+  // Convertir **bold** a <strong>bold</strong>
+  // (Esto no interfiere con MathJax, que se procesa después)
+  bodyString = bodyString.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+  
+  const body = `<p class="hint">${bodyString}</p>`;
+  
   return `<div class="msg ${klass}"><h4>${title}</h4>${body}</div>`;
 }
 
