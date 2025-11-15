@@ -672,6 +672,38 @@ function backwardSubstitution(U, y) {
   }
   return x;
 }
+function complexForwardSubstitution(L, b) {
+  const n = L.length;
+  const y = Array(n).fill(0.0).map(Complex.fromReal);
+  for (let i = 0; i < n; i++) {
+    let s = b[i];
+    for (let j = 0; j < i; j++) {
+      const prod = Complex.mul(L[i][j], y[j]);
+      s = Complex.sub(s, prod);
+    }
+    const den = L[i][i];
+    if (Complex.abs(den) < 1e-14) throw new Error("Singular Matrix: Zero pivot in complex forward substitution.");
+    y[i] = Complex.div(s, den);
+  }
+  return y;
+}
+
+function complexBackwardSubstitution(U, y) {
+  const n = U.length;
+  const x = Array(n).fill(0.0).map(Complex.fromReal);
+  for (let i = n - 1; i >= 0; i--) {
+    let s = y[i];
+    for (let j = i + 1; j < n; j++) {
+      const prod = Complex.mul(U[i][j], x[j]);
+      s = Complex.sub(s, prod);
+    }
+    const den = U[i][i];
+    if (Complex.abs(den) < 1e-14) throw new Error("Singular Matrix: Zero pivot in complex backward substitution.");
+    x[i] = Complex.div(s, den);
+  }
+  return x;
+}
+
 function applyPermutation(P, b) {
     const n = P.length;
     const out = Array(n).fill(0.0);
@@ -783,7 +815,8 @@ const Complex = {
     const theta = Math.atan2(a.im, a.re) / 2;
     return { re: r * Math.cos(theta), im: r * Math.sin(theta) };
   },
-  fromReal: (r) => ({ re: Number(r), im: 0.0 })
+  fromReal: (r) => ({ re: Number(r), im: 0.0 }),
+  abs: (a) => Math.sqrt(a.re * a.re + a.im * a.im)
 };
 
 /* ================= Root Finding: Helpers & Validation (UI-side) ================= */
@@ -2008,14 +2041,15 @@ function runDirect() {
         } else if (method === 'cholesky') {
             result = NumericalMethods.cholesky(A);
             L = result.L;
-            const y = forwardSubstitution(L, b.map(Complex.fromReal));
+            const y = complexForwardSubstitution(L, b.map(Complex.fromReal));
+
             const LT = zeros(A.length, A.length).map(r => r.map(Complex.fromReal));
             for(let i=0; i<A.length; i++) {
                 for(let j=0; j<A.length; j++) {
                     LT[i][j] = { re: L[j][i].re, im: -L[j][i].im }; // Conjugate Transpose
                 }
             }
-            x = backwardSubstitution(LT, y).map(c => c.re);
+            x = complexBackwardSubstitution(LT, y).map(c => c.re);
         }
         
         // Display results
