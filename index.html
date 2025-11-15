@@ -135,13 +135,7 @@
       </details>
     </div>
     
-    <!-- HIGH-VISIBILITY STATUS AREA -->
-    <div id="statusPanel" class="mb-6 space-y-2">
-        <div id="alertsBoxRoot" class="space-y-2"></div>
-        <div id="alertsDirect" class="space-y-2"></div>
-        <div id="alertsIter" class="space-y-2"></div>
-        <div id="alertsInter" class="space-y-2"></div>
-    </div>
+      <!-- HIGH-VISIBILITY STATUS AREA REMOVED: alerts now live inside their panels -->
 
 
     <!-- PANEL: ROOT FINDING (From Delivery 1) -->
@@ -219,11 +213,12 @@
           </div>
 
           <div id="bracketBox" class="mt-3"></div>
-          <div class="flex gap-2 mt-6 pt-4 border-t">
-            <button class="btn-run btn btn-primary w-full">Run</button>
-            <button class="btn-reset btn btn-soft w-full">Default Inputs</button>
+            <div class="flex gap-2 mt-6 pt-4 border-t">
+              <button class="btn-run btn btn-primary w-full">Run</button>
+              <button class="btn-reset btn btn-soft w-full">Default Inputs</button>
+            </div>
+            <div id="alertsBoxRoot" class="space-y-2 mt-4"></div>
           </div>
-        </div>
 
         <div>
           <h2 class="text-lg font-semibold mb-3">Status & Plot</h2>
@@ -256,11 +251,12 @@
           <input id="bVecInputDirect" class="input" value="1 1 1 1" />
           
           <p class="hint mt-3">Hint: The default matrix is symmetric positive-definite, valid for all direct methods.</p>
-          <div class="flex gap-2 mt-6 pt-4 border-t">
-            <button class="btn-run btn btn-primary w-full">Run</button>
-            <button class="btn-reset btn btn-soft w-full">Default Inputs</button>
+            <div class="flex gap-2 mt-6 pt-4 border-t">
+              <button class="btn-run btn btn-primary w-full">Run</button>
+              <button class="btn-reset btn btn-soft w-full">Default Inputs</button>
+            </div>
+            <div id="alertsDirect" class="space-y-2 mt-4"></div>
           </div>
-        </div>
         <div>
           <h2 class="text-lg font-semibold mb-3">Status & Guidance</h2>
           <div id="summaryDirect" class="mb-4"></div>
@@ -314,11 +310,12 @@
               <input id="wInputIter" type="number" class="input" value="1.5"/>
             </div>
           </div>
-          <div class="flex gap-2 mt-6 pt-4 border-t">
-            <button class="btn-run btn btn-primary w-full">Run</button>
-            <button class="btn-reset btn btn-soft w-full">Default Inputs</button>
+            <div class="flex gap-2 mt-6 pt-4 border-t">
+              <button class="btn-run btn btn-primary w-full">Run</button>
+              <button class="btn-reset btn btn-soft w-full">Default Inputs</button>
+            </div>
+            <div id="alertsIter" class="space-y-2 mt-4"></div>
           </div>
-        </div>
         <div>
           <h2 class="text-lg font-semibold mb-3">Status & Guidance</h2>
           <div id="summaryIter" class="mb-4"></div>
@@ -346,11 +343,12 @@
 3, 8
 4, 1</textarea>
           <p class="hint">One point (x, y) per line. Use a comma or space to separate values.</p>
-          <div class="flex gap-2 mt-6 pt-4 border-t">
-            <button class="btn-run btn btn-primary w-full">Run</button>
-            <button class="btn-reset btn btn-soft w-full">Default Inputs</button>
+            <div class="flex gap-2 mt-6 pt-4 border-t">
+              <button class="btn-run btn btn-primary w-full">Run</button>
+              <button class="btn-reset btn btn-soft w-full">Default Inputs</button>
+            </div>
+            <div id="alertsInter" class="space-y-2 mt-4"></div>
           </div>
-        </div>
         <div>
           <h2 class="text-lg font-semibold mb-3">Status & Guidance</h2>
           <div id="summaryInter" class="mb-4"></div>
