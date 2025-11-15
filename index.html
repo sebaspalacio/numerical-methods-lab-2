@@ -2318,6 +2318,7 @@ resetBtn.addEventListener('click', resetInputs);
 function populateAndInit() {
   // Cargar las guías desde el archivo JSON
   fetch('./guides.json')
+  fetch('guides.json')
     .then(response => {
       if (!response.ok) {
         throw new Error('Network response was not ok');
