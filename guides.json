@@ -1,6 +1,6 @@
 {
   "incremental": {
-    "title": "Incremental Search Guide",
+    "title": "Incremental Search Method Guide",
     "body": [
       "**Inputs:** Function $f(x)$, Interval $[a, b]$, Initial Guess $x_0$, Delta $\\Delta x$, Max Steps.",
       "**Goal:** Finds a small bracket $[x_i, x_{i+1}]$ where the function changes sign.",
@@ -58,7 +58,7 @@
     ]
   },
   "multiple": {
-    "title": "Multiple Roots (Mod. Newton)",
+    "title": "Multiple Roots Method Guide",
     "body": [
       "**Inputs:** Function $f(x)$, Initial Guess $x_0$, Tolerance. Optional: $f'(x)$, $f''(x)$.",
       "**Goal:** A modification of Newton's method to find roots with multiplicity $m > 1$.",
@@ -67,7 +67,7 @@
     ]
   },
   "gauss_simple": {
-    "title": "Gaussian Elimination (Simple)",
+    "title": "Gaussian Elimination Method Guide",
     "body": [
       "**Inputs:** Matrix A, Vector b.",
       "**Goal:** Solves $Ax=b$ by transforming the augmented matrix $[A|b]$ to upper triangular form $[U|c]$.",
@@ -76,7 +76,7 @@
     ]
   },
   "gauss_partial": {
-    "title": "Gaussian Elimination (Partial Pivot)",
+    "title": "Partial Pivot Method Guide",
     "body": [
       "**Inputs:** Matrix A, Vector b.",
       "**Goal:** A robust version of Gaussian Elimination.",
@@ -85,7 +85,7 @@
     ]
   },
   "gauss_total": {
-    "title": "Gaussian Elimination (Total Pivot)",
+    "title": "Total Pivot Method Guide",
     "body": [
       "**Inputs:** Matrix A, Vector b.",
       "**Goal:** The most numerically stable (but computationally expensive) pivoting strategy.",
@@ -94,7 +94,7 @@
     ]
   },
   "lu_gaussian": {
-    "title": "LU Factorization (Simple)",
+    "title": "LU (Gaussian) Method Guide",
     "body": [
       "**Inputs:** Matrix A, Vector b.",
       "**Goal:** Decomposes A into $A = LU$, where $L$ is lower triangular and $U$ is upper triangular.",
@@ -103,7 +103,7 @@
     ]
   },
   "lu_partial_pivot": {
-    "title": "LU Factorization (Partial Pivot)",
+    "title": "LU (Partial Pivot) Method Guide",
     "body": [
       "**Inputs:** Matrix A, Vector b.",
       "**Goal:** A stable factorization that finds $L$, $U$, and a permutation matrix $P$ such that $PA = LU$.",
@@ -112,7 +112,7 @@
     ]
   },
   "doolittle": {
-    "title": "Doolittle (LU) Factorization",
+    "title": "Doolittle (LU) Method Guide",
     "body": [
       "**Inputs:** Matrix A, Vector b.",
       "**Goal:** Finds $A=LU$ where $L$ is **unit-diagonal** (1s on the diagonal).",
@@ -120,7 +120,7 @@
     ]
   },
   "crout": {
-    "title": "Crout (LU) Factorization",
+    "title": "Crout (LU) Method Guide",
     "body": [
       "**Inputs:** Matrix A, Vector b.",
       "**Goal:** Finds $A=LU$ where $U$ is **unit-diagonal** (1s on the diagonal).",
@@ -128,7 +128,7 @@
     ]
   },
   "cholesky": {
-    "title": "Cholesky (LLT) Factorization",
+    "title": "Cholesky (LLT) Method Guide",
     "body": [
       "**Inputs:** Matrix A, Vector b.",
       "**Goal:** Decomposes A into $A = LL^T$, where $L$ is a lower triangular matrix.",
@@ -137,7 +137,7 @@
     ]
   },
   "jacobi": {
-    "title": "Jacobi Method",
+    "title": "Jacobi Method Guide",
     "body": [
       "**Inputs:** Matrix A, Vector b, Initial Vector $x_0$, Tolerance.",
       "**Goal:** Solves $Ax=b$ iteratively by isolating the diagonal. $x^{(k)} = T_J x^{(k-1)} + C_J$.",
@@ -146,7 +146,7 @@
     ]
   },
   "gauss_seidel": {
-    "title": "Gauss-Seidel Method",
+    "title": "Gauss-Seidel Method Guide",
     "body": [
       "**Inputs:** Matrix A, Vector b, Initial Vector $x_0$, Tolerance.",
       "**Goal:** An improvement on Jacobi that uses the new $x_i$ values as soon as they are computed in the *same* iteration.",
@@ -155,7 +155,7 @@
     ]
   },
   "sor": {
-    "title": "SOR (Successive Over-Relaxation)",
+    "title": "SOR Method Guide",
     "body": [
       "**Inputs:** Matrix A, Vector b, Initial Vector $x_0$, Tolerance, and Relaxation ($\\omega$).",
       "**Goal:** An accelerated version of Gauss-Seidel.",
@@ -164,7 +164,7 @@
     ]
   },
   "vandermonde": {
-    "title": "Vandermonde Interpolation",
+    "title": "Vandermonde Method Guide",
     "body": [
       "**Inputs:** A list of (x, y) data points.",
       "**Goal:** Finds the *single* polynomial $p(x) = a_n x^n + ... + a_0$ that passes through all $n+1$ points.",
@@ -173,7 +173,7 @@
     ]
   },
   "newton_interp": {
-    "title": "Newton's Polynomial (Divided Diffs)",
+    "title": "Newton (Divided Diffs) Method Guide",
     "body": [
       "**Inputs:** A list of (x, y) data points.",
       "**Goal:** Builds the *same* unique interpolating polynomial as Vandermonde, but in a more stable form.",
@@ -182,7 +182,7 @@
     ]
   },
   "lagrange": {
-    "title": "Lagrange Polynomial",
+    "title": "Lagrange Polynomial Method Guide",
     "body": [
       "**Inputs:** A list of (x, y) data points.",
       "**Goal:** A different formulation for the unique interpolating polynomial.",
@@ -192,7 +192,7 @@
     ]
   },
   "spline_linear": {
-    "title": "Linear Splines (Trazadores Lineales)",
+    "title": "Linear Splines Method Guide",
     "body": [
       "**Inputs:** A list of (x, y) data points.",
       "**Goal:** Connects consecutive data points with straight lines (piecewise polynomials of degree 1).",
@@ -200,7 +200,7 @@
     ]
   },
   "spline_quadratic": {
-    "title": "Quadratic Splines (Trazadores Cuadráticos)",
+    "title": "Quadratic Splines Method Guide",
     "body": [
       "**Inputs:** A list of (x, y) data points (at least 3).",
       "**Goal:** Connects points with parabolas (piecewise polynomials of degree 2).",
@@ -208,7 +208,7 @@
     ]
   },
   "spline_cubic": {
-    "title": "Cubic Splines (Trazadores Cúbicos)",
+    "title": "Cubic Splines Method Guide",
     "body": [
       "**Inputs:** A list of (x, y) data points (at least 3).",
       "**Goal:** Connects points with cubic polynomials (degree 3). This is the most common and smoothest spline.",
