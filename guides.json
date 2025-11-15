@@ -37,7 +37,7 @@
       "**Convergence:** This method has **linear convergence**."
     ]
   },
-  "newton": {
+  "newton_root": {
     "title": "Newton-Raphson Method Guide",
     "body": [
       "**Inputs:** Function $f(x)$, Initial Guess $x_0$, Tolerance. Optional: $f'(x)$.",
@@ -172,7 +172,7 @@
       "**Warning:** This method is **numerically unstable** for a large number of points ($n > 10$). The matrix $V$ becomes ill-conditioned. The PDF explicitly states this method is **\"no recomendable\"** (not recommended)."
     ]
   },
-  "newton": {
+  "newton_interp": {
     "title": "Newton's Polynomial (Divided Diffs)",
     "body": [
       "**Inputs:** A list of (x, y) data points.",
