@@ -1857,7 +1857,7 @@ function runRoot(){
       rows = result.steps.map(s => [s.k, fmt(s.x0), fmt(s.x1), fmt(s.err, 3, 'sci')]);
       itXs = result.steps.map(s => s.x1);
     }
-    else if (m==='newton'){
+    else if (m==='newton_root'){
       result = NumericalMethods.newton(f,x0,tol,kmax,a,b,fprime); 
       if(result.error){
         const errorType = result.error.includes("Theorem") ? 'warn' : 'err';
@@ -2139,7 +2139,7 @@ function runInterpolation() {
         resultHtml += `<h4>Polynomial P(x):</h4><div class="code">${polyStr}</div>`;
         plotPoly('vandermonde', x, y, { coeffs: a });
         summaryHTML = `<div><b>Poly:</b> ${polyStr.substring(0, 20)}...</div>`;
-    } else if (method === 'newton') {
+    } else if (method === 'newton_interp') {
         const { table, coeffs, polyStr } = NumericalMethods.newton_divided_differences(x, y);
         resultHtml += '<h4>Divided Differences Table (Diagonal Coefficients):</h4>'
         resultHtml += `<div class="table-wrapper rounded-xl border border-gray-200"><table class="table"><tbody>${
