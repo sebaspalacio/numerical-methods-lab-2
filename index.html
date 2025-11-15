@@ -52,10 +52,8 @@
       font-weight: 500;
       color: var(--c-primary);
       text-align: center;
-      padding: 0.5rem;
-      border: 1px solid #e5e7eb;
-      border-radius: 14px;
-      min-height: 3.5rem;
+      min-height: 1.5rem;
+      margin-bottom: 0.75rem;
     }
 
     .grid-2{ display:grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
@@ -143,7 +141,6 @@
       <div class="grid-2">
         <div>
           <h2 class="text-lg font-semibold mb-3">Inputs — Root Finding</h2>
-          <div id="functionDisplayRoot" class="math-display mb-3"></div>
           <!-- NEW: Defaults from Prueba_metodos.pdf -->
           <label class="block text-sm font-semibold mb-1">Function f(x)</label>
           <input id="fxInput" class="input" value="log(sin(x)**2 + 1) - 0.5 - x" placeholder="Example: x**3 - 7*x + 6" />
@@ -222,6 +219,7 @@
 
         <div>
           <h2 class="text-lg font-semibold mb-3">Status & Plot</h2>
+          <div id="functionDisplayRoot" class="math-display mb-3"></div>
           <div id="summaryBoxRoot" class="mb-4"></div>
           <div id="plot" class="w-full rounded-xl border border-gray-200" style="height:520px"></div>
         </div>
