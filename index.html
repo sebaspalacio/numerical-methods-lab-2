@@ -257,20 +257,20 @@
         <div>
           <h2 class="text-lg font-semibold mb-3">Status & Guidance</h2>
           <div id="summaryDirect" class="mb-4"></div>
-        </div>
-      </div>
-      <div id="resultsDirect" class="mt-6">
-        <!-- Results (L, U, x) will be inserted here -->
-        
-        <!-- NEW: Step viewer for Gaussian methods -->
-        <div id="stepsBox" class="mt-4 hidden">
-          <h3 class="text-lg font-semibold mb-2">Elimination Steps (Augmented Matrix)</h3>
-          <div class="flex items-center gap-3 mb-2">
-            <button id="prevStepBtn" class="btn btn-soft">Prev</button>
-            <div id="stepIndicator" class="hint">Step 1 / 1</div>
-            <button id="nextStepBtn" class="btn btn-soft">Next</button>
+          <div id="resultsDirect" class="mt-6">
+            <!-- Results (L, U, x) will be inserted here -->
+
+            <!-- NEW: Step viewer for Gaussian methods -->
+            <div id="stepsBox" class="mt-4 hidden">
+              <h3 class="text-lg font-semibold mb-2">Elimination Steps (Augmented Matrix)</h3>
+              <div class="flex items-center gap-3 mb-2">
+                <button id="prevStepBtn" class="btn btn-soft">Prev</button>
+                <div id="stepIndicator" class="hint">Step 1 / 1</div>
+                <button id="nextStepBtn" class="btn btn-soft">Next</button>
+              </div>
+              <div id="stepMatrix" class="table-wrapper rounded-xl border border-gray-200"></div>
+            </div>
           </div>
-          <div id="stepMatrix" class="table-wrapper rounded-xl border border-gray-200"></div>
         </div>
       </div>
     </section>
