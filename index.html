@@ -240,13 +240,12 @@
           <h2 class="text-lg font-semibold mb-3">Inputs — Direct Systems</h2>
           
           <label class="block text-sm font-semibold mb-1">Matrix A (rows by newline; values by space or comma)</label>
-          <textarea id="AInputDirect" class="input" rows="5">4 -1 0 3
-1 15.5 3 8
-0 -1.3 -4 1.1
-14 5 -2 30</textarea>
+          <textarea id="AInputDirect" class="input" rows="5">4 1 1
+1 3 2
+1 2 5</textarea>
 
           <label class="block text-sm font-semibold mt-3 mb-1">Vector b</label>
-          <input id="bVecInputDirect" class="input" value="1 1 1 1" />
+          <input id="bVecInputDirect" class="input" value="1 1 1" />
           
           <p class="hint mt-3">Hint: The default matrix is symmetric positive-definite, valid for all direct methods.</p>
             <div class="flex gap-2 mt-6 pt-4 border-t">
@@ -2320,9 +2319,9 @@ function resetInputs() {
         setHTML(summaryBoxRoot, ''); setHTML(iterTableRoot, ''); setHTML(bracketBox, '');
         Plotly.purge(plotDiv);
     } else if (appMode === 'direct') {
-        // --- Valores por defecto de Prueba_métodos2.pdf ---
-        AInputDirect.value = "4 -1 0 3\n1 15.5 3 8\n0 -1.3 -4 1.1\n14 5 -2 30"; // [cite: 74]
-        bVecInputDirect.value = "1 1 1 1"; // [cite: 74]
+        // --- Valores por defecto (Matriz Simétrica 3x3) ---
+        AInputDirect.value = "4 1 1\n1 3 2\n1 2 5";
+        bVecInputDirect.value = "1 1 1";
         setHTML(summaryDirect, ''); setHTML(resultsDirect, '');
         stepsBox.classList.add('hidden');
     } else if (appMode === 'iterative') {
