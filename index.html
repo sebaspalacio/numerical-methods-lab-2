@@ -143,7 +143,7 @@
           <h2 class="text-lg font-semibold mb-3">Inputs — Root Finding</h2>
           <!-- NEW: Defaults from Prueba_metodos.pdf -->
           <label class="block text-sm font-semibold mb-1">Function f(x)</label>
-          <input id="fxInput" class="input" value="log(sin(x)**2 + 1) - 0.5 - x" placeholder="Example: x**3 - 7*x + 6" />
+          <input id="fxInput" class="input" value="log(sin(x)**2 + 1) - 0.5" placeholder="Example: x**3 - 7*x + 6" />
           <p class="hint mb-3">Allowed: numbers, x, +, -, *, /, **, parentheses, and Math functions (sin, cos, exp, log, sqrt...)</p>
 
           <div id="gxGroup" class="hidden">
@@ -166,11 +166,11 @@
           <div class="grid grid-cols-2 gap-3">
             <div>
               <label class="block text-sm font-semibold mb-1">Interval Start (a)</label>
-              <input id="aInput" type="number" class="input" value="-1"/>
+              <input id="aInput" type="number" class="input" value="0"/>
             </div>
             <div>
               <label class="block text-sm font-semibold mb-1">Interval End (b)</label>
-              <input id="bInput" type="number" class="input" value="0"/>
+              <input id="bInput" type="number" class="input" value="1"/>
             </div>
           </div>
           <p class="hint mb-3">The interval [a, b] is used for bracketing methods and plotting. Must satisfy a &lt; b.</p>
@@ -190,7 +190,7 @@
           <div id="x0x1Group" class="grid grid-cols-2 gap-3 mt-3">
             <div>
               <label class="block text-sm font-semibold mb-1">Initial Guess (x₀)</label>
-              <input id="x0Input" type="number" class="input" value="-0.5"/>
+              <input id="x0Input" type="number" class="input" value="0.5"/>
             </div>
             <div id="x1Col" class="hidden">
               <label class="block text-sm font-semibold mb-1">Second Guess (x₁)</label>
@@ -2339,16 +2339,16 @@ function setMode(newMode) {
 function resetInputs() {
     clearAllAlerts();
     if (appMode === 'root') {
-        // --- Valores por defecto de Prueba_métodos.pdf ---
-        fxInput.value = "log(sin(x)**2 + 1) - 0.5 - x"; // f1(x) para Punto Fijo
-        gxInput.value = "log(sin(x)**2 + 1) - 0.5";     // g(x) para Punto Fijo
-        aInput.value = "-1";                            // Intervalo para Punto Fijo
-        bInput.value = "0";
-        x0Input.value = "-0.5";                         // x0 para Punto Fijo
-        x1Input.value = "1";                            // x1 para Secante
-        tolInput.value = "1e-7";                        // Tolerancia estándar
-        kmaxInput.value = "100";                        // N estándar
-        deltaInput.value = "0.5";                       // Delta para Búsquedas Incr.
+        // --- Valores por defecto de Prueba_métodos.pdf (Bisección/Newton) ---
+        fxInput.value = "log(sin(x)**2 + 1) - 0.5";     // f(x)
+        gxInput.value = "log(sin(x)**2 + 1) - 0.5";     // g(x)
+        aInput.value = "0";                             // a (Bisección/Regla Falsa) [cite: 2956, 2957]
+        bInput.value = "1";                             // b (Bisección/Regla Falsa) [cite: 2956, 2957]
+        x0Input.value = "0.5";                          // x0 (Newton)
+        x1Input.value = "1";                            // x1 (Secante) [cite: 2960]
+        tolInput.value = "1e-7";                        // Tolerancia estándar [cite: 2951]
+        kmaxInput.value = "100";                        // N estándar [cite: 2951]
+        deltaInput.value = "0.5";                       // Delta para Búsquedas Incr. [cite: 2955]
         nmaxInput.value = "100";
         dfInput.value = "exp(x) - 1";                   // h'(x) para Raíces Múltiples
         d2fInput.value = "exp(x)";                      // h''(x) para Raíces Múltiples
