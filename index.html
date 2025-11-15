@@ -2180,11 +2180,15 @@ function runInterpolation() {
   Plotly.purge(plotInter);
   const alertBox = getActiveAlertsBox();
   
-  try {
-    const { x, y } = parsePoints(pointsInput.value);
-    if (x.length < 2) throw new Error("At least 2 data points are required.");
-    
-    const method = methodSelect.value;
+    try {
+      const { x, y } = parsePoints(pointsInput.value);
+      if (x.length < 2) throw new Error("At least 2 data points are required.");
+      const xSet = new Set(x);
+      if (xSet.size !== x.length) {
+        throw new Error("Input Error: X-values must be unique. Duplicate X-values found.");
+      }
+
+      const method = methodSelect.value;
     const methodLabel = methodSelect.options[methodSelect.selectedIndex].text;
     let resultHtml = '';
     let summaryHTML = '';
