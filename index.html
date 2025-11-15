@@ -44,6 +44,9 @@
     .num{ font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; /* Se fueron display:flex, width:100%, etc. */ }
     .code{ font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; background:#f8fafc; padding:.15rem .35rem; border-radius:8px; font-size:.85rem; }
     .matrix-display { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; white-space: pre; background: #f8fafc; padding: 0.75rem; border-radius: 12px; border: 1px solid #e5e7eb; overflow-x: auto; }
+    /* Hide default disclosure markers */
+    summary { list-style: none; }
+    summary::-webkit-details-marker { display: none; }
     .math-display {
       font-size: 1.25rem;
       font-weight: 500;
@@ -124,10 +127,12 @@
           <a id="deepLink" class="btn btn-soft w-full hidden" href="#">Share Link</a>
         </div>
       </div>
-      <div id="guideBox" class="mt-4 msg info">
-        <h4>Method Guide</h4>
-        <p class="hint">Select a method to see its preconditions and tips.</p>
-      </div>
+      <details id="guideBox" class="mt-4 msg info">
+        <summary id="guideSummary"><strong>Method Guide</strong> (Click to expand)</summary>
+        <div id="guideBody">
+          <p class="hint">Select a method to see its preconditions and tips.</p>
+        </div>
+      </details>
     </div>
     
     <!-- HIGH-VISIBILITY STATUS AREA -->
@@ -2213,15 +2218,33 @@ function populateMethodsFor(mode) {
 function showGuide() {
   const m = methodSelect.value;
   const g = ALL_GUIDES[m];
+  const detailsEl = document.getElementById('guideBox');
+  const summaryEl = document.getElementById('guideSummary');
+  const bodyEl = document.getElementById('guideBody');
+
+  if (!summaryEl || !bodyEl) return;
+
   if (!g) {
-    setHTML(guideBox, msgCard('info', 'Method Guide', 'Select a method.'));
+    setHTML(summaryEl, 'Method Guide (Click to expand)');
+    setHTML(bodyEl, '<p class="hint">Select a method.</p>');
+    if (detailsEl) {
+      detailsEl.removeAttribute('open');
+    }
     return;
   }
-  setHTML(guideBox, msgCard('info', g.title, g.body));
 
-  // Pedir a MathJax que renderice el nuevo contenido de la guía
+  // Format body similar to the old msgCard helper
+  let bodyString = Array.isArray(g.body) ? g.body.join('<br>') : g.body;
+  bodyString = bodyString.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+  const bodyHTML = `<p class="hint">${bodyString}</p>`;
+
+  // Inject the formatted content
+  setHTML(summaryEl, `<strong>${g.title}</strong> (Click to expand)`);
+  setHTML(bodyEl, bodyHTML);
+
+  // Ask MathJax to typeset the new content
   if (window.MathJax && window.MathJax.typesetPromise) {
-    window.MathJax.typesetPromise([guideBox]);
+    window.MathJax.typesetPromise([summaryEl, bodyEl]);
   }
 }
 
@@ -2356,9 +2379,17 @@ function populateAndInit() {
       renderHistory(); // Load history from localStorage
     })
     .catch(error => {
-      // Si falla la carga del JSON, mostrar un error
+      // Si falla la carga del JSON, mostrar un error en la nueva estructura
       console.error('Error loading guides.json:', error);
-      setHTML(guideBox, msgCard('err', 'Error Fatal', 'No se pudieron cargar las guías de los métodos (guides.json). La app no puede iniciar.'));
+      const detailsEl = document.getElementById('guideBox');
+      const summaryEl = document.getElementById('guideSummary');
+      const bodyEl = document.getElementById('guideBody');
+
+      setHTML(summaryEl, 'Error Fatal');
+      setHTML(bodyEl, '<p class="hint">No se pudieron cargar las guías de los métodos (guides.json). La app no puede iniciar.</p>');
+      if (detailsEl) {
+        detailsEl.setAttribute('open', '');
+      }
     });
 }
 populateAndInit();
