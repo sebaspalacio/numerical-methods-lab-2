@@ -2,9 +2,9 @@
   "incremental": {
     "title": "Incremental Search Guide",
     "body": [
-      "**Inputs:** Function $f(x)$, Interval $[a, b]$, Initial Guess $x_0$, Delta $\Delta x$, Max Steps.",
+      "**Inputs:** Function $f(x)$, Interval $[a, b]$, Initial Guess $x_0$, Delta $\\Delta x$, Max Steps.",
       "**Goal:** Finds a small bracket $[x_i, x_{i+1}]$ where the function changes sign.",
-      "**Theory:** This method scans the domain starting at $x_0$ with steps of size $\Delta x$. It stops when it finds an interval $[x_i, x_{i+1}]$ where the **Intermediate Value Theorem** applies, meaning $f(x_i) \cdot f(x_{i+1}) < 0$.",
+      "**Theory:** This method scans the domain starting at $x_0$ with steps of size $\\Delta x$. It stops when it finds an interval $[x_i, x_{i+1}]$ where the **Intermediate Value Theorem** applies, meaning $f(x_i) \\cdot f(x_{i+1}) < 0$.",
       "**Condition:** Requires $f(x)$ to be continuous."
     ]
   },
@@ -13,8 +13,8 @@
     "body": [
       "**Inputs:** Function $f(x)$, Interval $[a, b]$, Tolerance.",
       "**Goal:** Finds a root within a given bracket by repeatedly halving the interval.",
-      "**Theorem (Bisection):** Given a continuous function $f$ on $[a, b]$, if **$f(a) \cdot f(b) < 0$**, the method is guaranteed to converge to a root $x_v$ in the interval.",
-      "**Convergence:** This method has **linear convergence** with an error bound of $$|x_v - x_m| < \frac{b-a}{2^n}$$"
+      "**Theorem (Bisection):** Given a continuous function $f$ on $[a, b]$, if **$f(a) \\cdot f(b) < 0$**, the method is guaranteed to converge to a root $x_v$ in the interval.",
+      "**Convergence:** This method has **linear convergence** with an error bound of $$|x_v - x_m| < \\frac{b-a}{2^n}$$"
     ]
   },
   "falsePosition": {
@@ -22,7 +22,7 @@
     "body": [
       "**Inputs:** Function $f(x)$, Interval $[a, b]$, Tolerance.",
       "**Goal:** A bracketing method, often faster than Bisection, that uses a linear interpolation (a \"secant\" line) to estimate the next root.",
-      "**Theorem:** Requires the same conditions as Bisection: $f$ must be continuous and **$f(a) \cdot f(b) < 0$**.",
+      "**Theorem:** Requires the same conditions as Bisection: $f$ must be continuous and **$f(a) \\cdot f(b) < 0$**.",
       "**Note:** While often faster, it can converge very slowly if the function is highly convex or concave near the root."
     ]
   },
@@ -32,8 +32,8 @@
       "**Inputs:** Function $f(x)$ (for finding root), Function $g(x)$ (for iteration $x = g(x)$), Initial Guess $x_0$, Tolerance.",
       "**Goal:** Finds a solution $x_v$ such that $x_v = g(x_v)$, which is a root of $f(x)$ if $f(x)$ is formulated as $f(x) = x - g(x)$.",
       "**Theorem (Fixed Point):** Convergence is guaranteed if $g(x)$ has a unique fixed point in $[a,b]$. This requires two conditions:",
-      "1. $g(x)$ is continuous and maps $[a,b]$ into itself (i.e., for every $x \in [a,b]$, $g(x)$ is also in $[a,b]$).",
-      "2. The derivative $g'(x)$ exists and there is a constant $k < 1$ such that **$|g'(x)| \le k$** for all $x \in (a,b)$ (Contractive Mapping).",
+      "1. $g(x)$ is continuous and maps $[a,b]$ into itself (i.e., for every $x \\in [a,b]$, $g(x)$ is also in $[a,b]$).",
+      "2. The derivative $g'(x)$ exists and there is a constant $k < 1$ such that **$|g'(x)| \\le k$** for all $x \\in (a,b)$ (Contractive Mapping).",
       "**Convergence:** This method has **linear convergence**."
     ]
   },
@@ -42,8 +42,8 @@
     "body": [
       "**Inputs:** Function $f(x)$, Initial Guess $x_0$, Tolerance. Optional: $f'(x)$.",
       "**Goal:** Finds a root using tangent lines. It is derived from a Fixed Point iteration where $g(x) = x - f(x)/f'(x)$.",
-      "**Theorem:** Requires $f(x)$ to be twice-differentiable ($f \in C^2[a,b]$).",
-      "**Conditions:** The method requires $x_0$ to be \"sufficiently close\" to the root $x_v$, and the root must be simple (i.e., **$f'(x_v) \neq 0$**). The app will warn if $f'(x)$ is near zero during iteration.",
+      "**Theorem:** Requires $f(x)$ to be twice-differentiable ($f \\in C^2[a,b]$).",
+      "**Conditions:** The method requires $x_0$ to be \"sufficiently close\" to the root $x_v$, and the root must be simple (i.e., **$f'(x_v) \\neq 0$**). The app will warn if $f'(x)$ is near zero during iteration.",
       "**Convergence:** This method has **quadratic convergence** (order 2), which is very fast."
     ]
   },
@@ -53,8 +53,8 @@
       "**Inputs:** Function $f(x)$, Initial Guess $x_0$, Second Guess $x_1$, Tolerance.",
       "**Goal:** A modification of Newton's method that does not require an analytic derivative.",
       "**Theory:** It approximates the derivative $f'(x_n)$ using the slope of the secant line between the two previous points, $x_n$ and $x_{n-1}$.",
-      "**Formula:** $$x_{n+1} = x_n - \frac{f(x_n)(x_n - x_{n-1})}{f(x_n) - f(x_{n-1})}$$",
-      "**Convergence:** This method has **superlinear convergence** (order $\approx 1.62$). It is slower than Newton but faster than linear methods."
+      "**Formula:** $$x_{n+1} = x_n - \\frac{f(x_n)(x_n - x_{n-1})}{f(x_n) - f(x_{n-1})}$$",
+      "**Convergence:** This method has **superlinear convergence** (order $\\approx 1.62$). It is slower than Newton but faster than linear methods."
     ]
   },
   "multiple": {
@@ -62,8 +62,8 @@
     "body": [
       "**Inputs:** Function $f(x)$, Initial Guess $x_0$, Tolerance. Optional: $f'(x)$, $f''(x)$.",
       "**Goal:** A modification of Newton's method to find roots with multiplicity $m > 1$.",
-      "**Theorem:** A root $x_v$ has multiplicity $m$ if $f(x_v) = f'(x_v) = ... = f^{(m-1)}(x_v) = 0$, but $f^{(m)}(x_v) \neq 0$.",
-      "**Formula:** This app uses the standard modified formula which restores quadratic convergence: $$x_{n+1} = x_n - \frac{f(x_n)f'(x_n)}{[f'(x_n)]^2 - f(x_n)f''(x_n)}$$"
+      "**Theorem:** A root $x_v$ has multiplicity $m$ if $f(x_v) = f'(x_v) = ... = f^{(m-1)}(x_v) = 0$, but $f^{(m)}(x_v) \\neq 0$.",
+      "**Formula:** This app uses the standard modified formula which restores quadratic convergence: $$x_{n+1} = x_n - \\frac{f(x_n)f'(x_n)}{[f'(x_n)]^2 - f(x_n)f''(x_n)}$$"
     ]
   },
   "gauss_simple": {
@@ -142,7 +142,7 @@
       "**Inputs:** Matrix A, Vector b, Initial Vector $x_0$, Tolerance.",
       "**Goal:** Solves $Ax=b$ iteratively by isolating the diagonal. $x^{(k)} = T_J x^{(k-1)} + C_J$.",
       "**Condition:** The method requires that there are **no zeros on the diagonal** of A.",
-      "**Convergence:** Convergence is guaranteed if A is **diagonally dominant**. The app will check the spectral radius of the iteration matrix T, $\rho(T)$. Convergence occurs if and only if $\rho(T) < 1$."
+      "**Convergence:** Convergence is guaranteed if A is **diagonally dominant**. The app will check the spectral radius of the iteration matrix T, $\\rho(T)$. Convergence occurs if and only if $\\rho(T) < 1$."
     ]
   },
   "gauss_seidel": {
@@ -151,16 +151,16 @@
       "**Inputs:** Matrix A, Vector b, Initial Vector $x_0$, Tolerance.",
       "**Goal:** An improvement on Jacobi that uses the new $x_i$ values as soon as they are computed in the *same* iteration.",
       "**Condition:** Requires **no zeros on the diagonal** of A.",
-      "**Convergence:** Often converges faster than Jacobi. Guaranteed if A is diagonally dominant or symmetric positive-definite. The app will check the spectral radius $\rho(T)$; convergence occurs if $\rho(T) < 1$."
+      "**Convergence:** Often converges faster than Jacobi. Guaranteed if A is diagonally dominant or symmetric positive-definite. The app will check the spectral radius $\\rho(T)$; convergence occurs if $\\rho(T) < 1$."
     ]
   },
   "sor": {
     "title": "SOR (Successive Over-Relaxation)",
     "body": [
-      "**Inputs:** Matrix A, Vector b, Initial Vector $x_0$, Tolerance, and Relaxation ($\omega$).",
+      "**Inputs:** Matrix A, Vector b, Initial Vector $x_0$, Tolerance, and Relaxation ($\\omega$).",
       "**Goal:** An accelerated version of Gauss-Seidel.",
-      "**Condition:** Requires **no zeros on the diagonal**. The parameter $\omega$ (\"omega\") controls the relaxation. If $\omega=1$, SOR is identical to Gauss-Seidel. If $0 < \omega < 1$, it is \"under-relaxation\". If $1 < \omega < 2$, it is \"over-relaxation\".",
-      "**Convergence:** Must have $0 < \omega < 2$. The optimal $\omega$ is problem-specific. The app will check $\rho(T_\omega)$."
+      "**Condition:** Requires **no zeros on the diagonal**. The parameter $\\omega$ (\"omega\") controls the relaxation. If $\\omega=1$, SOR is identical to Gauss-Seidel. If $0 < \\omega < 1$, it is \"under-relaxation\". If $1 < \\omega < 2$, it is \"over-relaxation\".",
+      "**Convergence:** Must have $0 < \\omega < 2$. The optimal $\\omega$ is problem-specific. The app will check $\\rho(T_\\omega)$."
     ]
   },
   "vandermonde": {
@@ -186,7 +186,7 @@
     "body": [
       "**Inputs:** A list of (x, y) data points.",
       "**Goal:** A different formulation for the unique interpolating polynomial.",
-      "**Theory:** Builds the polynomial as a sum of weighted \"basis polynomials\" $L_k(x)$. The formula is: $$p(x) = \sum_{k=0}^{n} L_k(x) f(x_k)$$",
+      "**Theory:** Builds the polynomial as a sum of weighted \"basis polynomials\" $L_k(x)$. The formula is: $$p(x) = \\sum_{k=0}^{n} L_k(x) f(x_k)$$",
       "Each $L_k(x)$ is a polynomial of degree $n$ that is 1 at $x_k$ and 0 at all other $x_j$.",
       "**Advantage:** Conceptually simple and does not require solving a system of equations."
     ]
