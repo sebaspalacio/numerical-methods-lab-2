@@ -2272,23 +2272,33 @@ function setMode(newMode) {
 }
 
 // Show/hide specific input fields based on the selected method
-function syncVisibility() {
-  const m = methodSelect.value;
-  
-  // Root Finding Panel
-  gxGroup.classList.toggle('hidden', m !== 'fixedPoint');
-  dfGroup.classList.toggle('hidden', m !== 'newton' && m !== 'multiple');
-  d2fGroup.classList.toggle('hidden', m !== 'multiple');
-  deltaGroup.classList.toggle('hidden', m !== 'incremental');
-  x1Col.classList.toggle('hidden', m !== 'secant');
-  tableBoxRoot.classList.toggle('hidden', m === 'incremental'); // Hide table for incremental search
-  
-  // Iterative Panel
-  wGroupIter.classList.toggle('hidden', m !== 'sor');
-  
-  // Update the guide box for the newly selected method
-  showGuide();
-}
+  function syncVisibility() {
+    const m = methodSelect.value;
+
+    // Root Finding Panel
+    gxGroup.classList.toggle('hidden', m !== 'fixedPoint');
+    dfGroup.classList.toggle('hidden', m !== 'newton_root' && m !== 'multiple');
+    d2fGroup.classList.toggle('hidden', m !== 'multiple');
+    deltaGroup.classList.toggle('hidden', m !== 'incremental');
+    x1Col.classList.toggle('hidden', m !== 'secant');
+    tableBoxRoot.classList.toggle('hidden', m === 'incremental');
+
+    // Cargar inputs de ejemplo para Raíces Múltiples
+    if (m === 'multiple') {
+      fxInput.value = "exp(x) - x - 1";
+      dfInput.value = "exp(x) - 1";
+      d2fInput.value = "exp(x)";
+      x0Input.value = "1";
+      aInput.value = "-1"; // Un intervalo que contenga la raíz 0
+      bInput.value = "2";
+    }
+
+    // Iterative Panel
+    wGroupIter.classList.toggle('hidden', m !== 'sor');
+
+    // Update the guide box for the newly selected method
+    showGuide();
+  }
 
 // Resets all inputs in the currently active panel to their defaults
 function resetInputs() {
