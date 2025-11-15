@@ -2317,6 +2317,7 @@ resetBtn.addEventListener('click', resetInputs);
 /* ================= Init ================= */
 function populateAndInit() {
   // Cargar las guías desde el archivo JSON
+  fetch('./guides.json')
   fetch('guides.json')
     .then(response => {
       if (!response.ok) {
