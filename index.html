@@ -120,10 +120,6 @@
           <select id="methodSelect" class="select"></select>
         </div>
         <div class="flex gap-2">
-          <button id="runBtn" class="btn btn-primary w-full">Run</button>
-          <button id="resetBtn" class="btn btn-soft w-full">Clear Inputs</button>
-        </div>
-        <div class="flex gap-2">
           <button id="historyBtn" class="btn btn-soft w-full">History</button>
           <a id="deepLink" class="btn btn-soft w-full hidden" href="#">Share Link</a>
         </div>
@@ -218,6 +214,10 @@
           </div>
 
           <div id="bracketBox" class="mt-3"></div>
+          <div class="flex gap-2 mt-6 pt-4 border-t">
+            <button class="btn-run btn btn-primary w-full">Run</button>
+            <button class="btn-reset btn btn-soft w-full">Default Inputs</button>
+          </div>
         </div>
 
         <div>
@@ -251,6 +251,10 @@
           <input id="bVecInputDirect" class="input" value="1 1 1 1" />
           
           <p class="hint mt-3">Hint: The default matrix is symmetric positive-definite, valid for all direct methods.</p>
+          <div class="flex gap-2 mt-6 pt-4 border-t">
+            <button class="btn-run btn btn-primary w-full">Run</button>
+            <button class="btn-reset btn btn-soft w-full">Default Inputs</button>
+          </div>
         </div>
         <div>
           <h2 class="text-lg font-semibold mb-3">Status & Guidance</h2>
@@ -305,6 +309,10 @@
               <input id="wInputIter" type="number" class="input" value="1.5"/>
             </div>
           </div>
+          <div class="flex gap-2 mt-6 pt-4 border-t">
+            <button class="btn-run btn btn-primary w-full">Run</button>
+            <button class="btn-reset btn btn-soft w-full">Default Inputs</button>
+          </div>
         </div>
         <div>
           <h2 class="text-lg font-semibold mb-3">Status & Guidance</h2>
@@ -333,6 +341,10 @@
 3, 8
 4, 1</textarea>
           <p class="hint">One point (x, y) per line. Use a comma or space to separate values.</p>
+          <div class="flex gap-2 mt-6 pt-4 border-t">
+            <button class="btn-run btn btn-primary w-full">Run</button>
+            <button class="btn-reset btn btn-soft w-full">Default Inputs</button>
+          </div>
         </div>
         <div>
           <h2 class="text-lg font-semibold mb-3">Status & Guidance</h2>
@@ -369,8 +381,6 @@ const tabDirect = document.getElementById('tabDirect');
 const tabIterative = document.getElementById('tabIterative');
 const tabInterpolation = document.getElementById('tabInterpolation');
 const methodSelect = document.getElementById('methodSelect');
-const runBtn = document.getElementById('runBtn');
-const resetBtn = document.getElementById('resetBtn');
 const guideBox = document.getElementById('guideBox');
 const deepLink = document.getElementById('deepLink');
 
@@ -1729,18 +1739,6 @@ clearHistBtn.addEventListener('click', ()=>{
 });
 
 
-/* ================= Run Controllers (Capa de Control) ================= */
-
-runBtn.addEventListener('click', () => {
-  // Clear all status messages before any run
-  clearAllAlerts();
-  
-  if (appMode === 'root') runRoot();
-  else if (appMode === 'direct') runDirect();
-  else if (appMode === 'iterative') runIterative();
-  else if (appMode === 'interpolation') runInterpolation();
-});
-
 function runRoot(){
   // Clear previous root results
   setHTML(summaryBoxRoot, '');
@@ -2321,12 +2319,10 @@ tabDirect.addEventListener('click', () => setMode('direct'));
 tabIterative.addEventListener('click', () => setMode('iterative'));
 tabInterpolation.addEventListener('click', () => setMode('interpolation'));
 methodSelect.addEventListener('change', syncVisibility);
-resetBtn.addEventListener('click', resetInputs);
 
 /* ================= Init ================= */
 function populateAndInit() {
   // Cargar las guías desde el archivo JSON
-  fetch('./guides.json')
   fetch('guides.json')
     .then(response => {
       if (!response.ok) {
@@ -2336,8 +2332,25 @@ function populateAndInit() {
     })
     .then(data => {
       ALL_GUIDES = data; // Almacenar las guías en la variable global
-
-      // Ahora que las guías están cargadas, iniciar la app
+      
+      // --- 👇 INICIO DEL NUEVO BLOQUE DE LISTENERS 👇 ---
+      // 1. Encontrar TODOS los botones "Run" y asignarles el click
+      document.querySelectorAll('.btn-run').forEach(button => {
+        button.addEventListener('click', () => {
+          clearAllAlerts();
+          if (appMode === 'root') runRoot();
+          else if (appMode === 'direct') runDirect();
+          else if (appMode === 'iterative') runIterative();
+          else if (appMode === 'interpolation') runInterpolation();
+        });
+      });
+      // 2. Encontrar TODOS los botones "Default Inputs" y asignarles el click
+      document.querySelectorAll('.btn-reset').forEach(button => {
+        button.addEventListener('click', resetInputs);
+      });
+      
+      // --- 👆 FIN DEL NUEVO BLOQUE DE LISTENERS ---
+      // Iniciar la app
       deepLink.classList.add('hidden'); // Hide share link
       setMode('root'); // Start on the 'Root Finding' tab
       renderHistory(); // Load history from localStorage
