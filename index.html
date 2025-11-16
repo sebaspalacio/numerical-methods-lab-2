@@ -1902,10 +1902,8 @@ function runRoot(){
     x0=vx0.value;
     x1 = (m==='secant') ? (validateNumber('x1', x1Input.value).value) : null;
     if (m==='secant' && x1 === null) { setHTML(alertBox, msgCard('err','Error: Invalid Input', "x1 is required for Secant method.")); return; }
-    const vtol = validateNumber('Tolerance', tolInput.value, {gt:0});
-    if(!vtol.ok) { appendHTML(alertBox, msgCard('err','Input Error', "Tolerance must be a number > 0.")); return; }
-    const vkmax = validateNumber('Max iterations', kmaxInput.value, {gt:0});
-    if(!vkmax.ok || !Number.isInteger(vkmax.value)) { appendHTML(alertBox, msgCard('err','Input Error', "Max Iterations (k) must be a positive integer.")); return; }
+    const vtol = validateNumber('Tolerance', tolInput.value, {gt:0}); if(!vtol.ok) { appendHTML(alertBox, msgCard('err','Input Error', "Tolerance must be a number > 0.")); return; }
+    const vkmax = validateNumber('Max iterations', kmaxInput.value, {gt:0}); if(!vkmax.ok || !Number.isInteger(vkmax.value)) { appendHTML(alertBox, msgCard('err','Input Error', "Max Iterations (k) must be a positive integer.")); return; }
     tol=vtol.value; kmax=vkmax.value;
     delta = (m==='incremental') ? (validateNumber('Delta', deltaInput.value).value) : null;
     if (m==='incremental' && delta === null) { setHTML(alertBox, msgCard('err','Error: Invalid Input', "Delta is required for Incremental Search.")); return; }
@@ -2192,6 +2190,7 @@ function runIterative() {
     const w = Number(wInputIter.value);
     const method = methodSelect.value;
     const methodLabel = methodSelect.options[methodSelect.selectedIndex].text;
+    // Validate relaxation factor when running SOR
     if (method === 'sor') {
       if (w <= 0 || w >= 2) {
         appendHTML(alertBox, msgCard('warn', 'Input Warning', 'Theorem Violation: The relaxation factor $\\omega$ (omega) must be in the interval (0, 2).'));
