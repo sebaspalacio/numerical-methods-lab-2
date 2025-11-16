@@ -503,6 +503,7 @@ const METHODS = {
   root: [
     { value: 'incremental',   label: 'Incremental Search' },
     { value: 'bisection',     label: 'Bisection' },
+    { value: 'trisection',    label: 'Trisection' },
     { value: 'falsePosition', label: 'False Position' },
     { value: 'fixedPoint',    label: 'Fixed Point' },
     { value: 'newton_root',        label: 'Newton-Raphson' },
@@ -1063,7 +1064,7 @@ function precheckRoot(phi, a, b, methodName) {
   // a < b check is now done in runRoot()
   const s = scanIntervalDetailed(phi, a, b, 240);
   if (s.invalidRatio > 0.25) return { ok:false, msg:"f(x) seems undefined or unbounded on [a,b]. Try a smaller interval.", flips:s.flips };
-  if ((methodName==='bisection'||methodName==='falsePosition') && !s.signChange) return { ok:false, msg:"Theorem Violation: No sign change on [a,b]. f(a) and f(b) must have opposite signs. Try Incremental Search first.", flips:s.flips };
+  if ((methodName==='bisection'||methodName==='trisection'||methodName==='falsePosition') && !s.signChange) return { ok:false, msg:"Theorem Violation: No sign change on [a,b]. f(a) and f(b) must have opposite signs. Try Incremental Search first.", flips:s.flips };
   return { ok:true, flips:s.flips };
 }
 
@@ -1132,7 +1133,32 @@ const NumericalMethods = {
     }
     return { steps, root:xm, err:(b-a)/2, k:kmax };
   },
-  
+
+  trisection: (phi,a,b,tol,kmax) => {
+    const steps=[]; let fa=phi(a), fb=phi(b);
+    if(fa*fb>0) return { error:"Theorem Violation: No sign change on [a,b]. f(a)·f(b) must be < 0." };
+    for(let k=1; k<=kmax; k++){
+      const x1 = a + (b-a)/3;
+      const x2 = b - (b-a)/3;
+      const f1 = phi(x1);
+      const f2 = phi(x2);
+      const err = (b-a)/3;
+      steps.push({k, a, b, x1, f1, x2, f2, err});
+      if(f1 === 0) return { steps, root:x1, err:0, k };
+      if(f2 === 0) return { steps, root:x2, err:0, k };
+      if(err <= tol) return { steps, root:(f1<f2 ? x1 : x2), err, k };
+      if(fa*f1 < 0) {
+        b = x1; fb = f1;
+      } else if (f1*f2 < 0) {
+        a = x1; fa = f1;
+        b = x2; fb = f2;
+      } else {
+        a = x2; fa = f2;
+      }
+    }
+    return { steps, root:(a+b)/2, err:(b-a)/2, k:kmax };
+  },
+
   falsePosition: (phi,a,b,tol,kmax) => {
     const steps=[]; let fa=phi(a), fb=phi(b);
     if(fa*fb>0) return { error:"Theorem Violation: No sign change on [a,b]. f(a)·f(b) must be < 0." };
@@ -1917,7 +1943,7 @@ function runRoot(){
     }
     renderBracketSuggestions(chk.flips);
     plotFx(f,a,b,[], 'iter');
-    if (!chk.ok && (m==='bisection' || m==='falsePosition')) return; 
+    if (!chk.ok && (m==='bisection' || m==='trisection' || m==='falsePosition')) return;
 
     // 3. Execute method
     let headers=[], rows=[], itXs=[], summaryHTML='';
@@ -1939,12 +1965,22 @@ function runRoot(){
       if(result.error){
         const errorType = result.error.includes("Theorem") ? 'warn' : 'err';
         const errorTitle = errorType === 'warn' ? 'Alert: Theorem Violation' : 'Error: Execution Failed';
-        appendHTML(alertBox, msgCard(errorType, errorTitle, [result.error])); 
+        appendHTML(alertBox, msgCard(errorType, errorTitle, [result.error]));
         return;
       }
-      headers=["k","a","b","xm","f(xm)","|dx|","(b-a)/2"]; 
+      headers=["k","a","b","xm","f(xm)","|dx|","(b-a)/2"];
       rows = result.steps.map(s => [s.k, fmt(s.a), fmt(s.b), fmt(s.xm), fmt(s.fm, 3, 'sci'), fmt(s.errX, 3, 'sci'), fmt(s.errB, 3, 'sci')]);
       itXs = result.steps.map(s => s.xm);
+    }
+    else if (m==='trisection'){
+      result = NumericalMethods.trisection(f,a,b,tol,kmax);
+      if(result.error){
+        appendHTML(alertBox, msgCard('warn','Alert: Theorem Violation', [result.error]));
+        return;
+      }
+      headers=["k","a","b","x1","f(x1)","x2","f(x2)","Error"];
+      rows = result.steps.map(s => [s.k, fmt(s.a), fmt(s.b), fmt(s.x1), fmt(s.f1, 3, 'sci'), fmt(s.x2), fmt(s.f2, 3, 'sci'), fmt(s.err, 3, 'sci')]);
+      itXs = result.steps.map(s => s.x1);
     }
     else if (m==='falsePosition'){
       result = NumericalMethods.falsePosition(f,a,b,tol,kmax);

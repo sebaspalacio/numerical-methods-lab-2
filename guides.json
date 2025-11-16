@@ -17,6 +17,16 @@
       "**Convergence:** This method has **linear convergence** with an error bound of $$|x_v - x_m| < \\frac{b-a}{2^n}$$"
     ]
   },
+  "trisection": {
+    "title": "Trisection Method Guide",
+    "body": [
+      "**[Added Value Method]**",
+      "**Inputs:** Function $f(x)$, Interval $[a, b]$, Tolerance.",
+      "**Goal:** A variation of Bisection that splits the interval into three parts.",
+      "**Theorem:** Requires the same conditions as Bisection: $f$ must be continuous and **$f(a) \cdot f(b) < 0$**.",
+      "**Note:** This method is generally less efficient than Bisection but is included as an additional method."
+    ]
+  },
   "falsePosition": {
     "title": "False Position Method Guide",
     "body": [
