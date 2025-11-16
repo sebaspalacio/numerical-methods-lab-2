@@ -2418,29 +2418,50 @@ function setMode(newMode) {
 // Show/hide specific input fields based on the selected method
   function syncVisibility() {
     const m = methodSelect.value;
-
-    // Root Finding Panel
+  
+    // --- 1. Toggle field visibility ---
     gxGroup.classList.toggle('hidden', m !== 'fixedPoint');
     dfGroup.classList.toggle('hidden', m !== 'newton_root' && m !== 'multiple');
     d2fGroup.classList.toggle('hidden', m !== 'multiple');
     deltaGroup.classList.toggle('hidden', m !== 'incremental');
     x1Col.classList.toggle('hidden', m !== 'secant');
     tableBoxRoot.classList.toggle('hidden', m === 'incremental');
-
-    // Cargar inputs de ejemplo para Raíces Múltiples
-    if (m === 'multiple') {
-      fxInput.value = "exp(x) - x - 1";
-      dfInput.value = "exp(x) - 1";
-      d2fInput.value = "exp(x)";
-      x0Input.value = "1";
-      aInput.value = "-1"; // Un intervalo que contenga la raíz 0
-      bInput.value = "2";
-    }
-
-    // Iterative Panel
     wGroupIter.classList.toggle('hidden', m !== 'sor');
+  
+    // --- 2. Set default inputs based on method ---
+    // We must check the *mode* first, so we don't mess up other panels
+    if (appMode === 'root') {
+        
+        // First, set the "master" defaults (for Bisection/Newton)
+        fxInput.value = "log(sin(x)**2 + 1) - 0.5";
+        gxInput.value = "log(sin(x)**2 + 1) - 0.5";
+        dfInput.value = "2*(sin(x)**2+1)**(-1)*sin(x)*cos(x)";
+        d2fInput.value = "exp(x)";
+        aInput.value = "0";
+        bInput.value = "1";
+        x0Input.value = "0.5";
+        x1Input.value = "1";
 
-    // Update the guide box for the newly selected method
+        // Now, override for specific methods
+        if (m === 'multiple') {
+          // Cargar inputs de ejemplo para Raíces Múltiples (h(x)) [cite: 3802, 3809]
+          fxInput.value = "exp(x) - x - 1";
+          dfInput.value = "exp(x) - 1";
+          d2fInput.value = "exp(x)";
+          x0Input.value = "1";
+          aInput.value = "-1"; // Un intervalo que contenga la raíz 0
+          bInput.value = "2";
+        } else if (m === 'fixedPoint') {
+          // Cargar inputs de ejemplo para Punto Fijo (f1(x), g(x)) 
+          fxInput.value = "log(sin(x)**2 + 1) - 0.5 - x"; // f1(x)
+          gxInput.value = "log(sin(x)**2 + 1) - 0.5";     // g(x)
+          x0Input.value = "-0.5";                         // x0 [cite: 3807]
+          aInput.value = "-1";                            // Intervalo bueno para -0.374...
+          bInput.value = "0";
+        }
+    }
+  
+    // --- 3. Show the guide ---
     showGuide();
   }
 
