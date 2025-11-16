@@ -2517,8 +2517,7 @@ function populateAndInit() {
     .then(data => {
       ALL_GUIDES = data; // Almacenar las guías en la variable global
       
-      // --- 👇 INICIO DEL NUEVO BLOQUE DE LISTENERS 👇 ---
-      // 1. Encontrar TODOS los botones "Run" y asignarles el click
+      // --- Añadir Listeners de Botones ---
       document.querySelectorAll('.btn-run').forEach(button => {
         button.addEventListener('click', () => {
           clearAllAlerts();
@@ -2528,29 +2527,25 @@ function populateAndInit() {
           else if (appMode === 'interpolation') runInterpolation();
         });
       });
-      // 2. Encontrar TODOS los botones "Default Inputs" y asignarles el click
       document.querySelectorAll('.btn-reset').forEach(button => {
         button.addEventListener('click', resetInputs);
       });
       
-      // --- 👆 FIN DEL NUEVO BLOQUE DE LISTENERS ---
       // Iniciar la app
       deepLink.classList.add('hidden'); // Hide share link
       setMode('root'); // Start on the 'Root Finding' tab
       renderHistory(); // Load history from localStorage
     })
     .catch(error => {
-      // Si falla la carga del JSON, mostrar un error en la nueva estructura
+      // Si falla la carga del JSON, mostrar un error
       console.error('Error loading guides.json:', error);
       const detailsEl = document.getElementById('guideBox');
       const summaryEl = document.getElementById('guideSummary');
       const bodyEl = document.getElementById('guideBody');
-
-      setHTML(summaryEl, 'Error Fatal');
+      
+      setHTML(summaryEl, '<span class="text-red-700">Error Fatal</span>');
       setHTML(bodyEl, '<p class="hint">No se pudieron cargar las guías de los métodos (guides.json). La app no puede iniciar.</p>');
-      if (detailsEl) {
-        detailsEl.setAttribute('open', '');
-      }
+      detailsEl.setAttribute('open', ''); // Forzar que se abra si hay un error
     });
 }
 populateAndInit();
