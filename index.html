@@ -1063,7 +1063,7 @@ function precheckRoot(phi, a, b, methodName) {
   // a < b check is now done in runRoot()
   const s = scanIntervalDetailed(phi, a, b, 240);
   if (s.invalidRatio > 0.25) return { ok:false, msg:"f(x) seems undefined or unbounded on [a,b]. Try a smaller interval.", flips:s.flips };
-  if ((methodName==='bisection'||methodName==='falsePosition') && !s.signChange) return { ok:false, msg:"Theorem Violation: No sign change on [a,b]. f(a) and f(b) must have opposite signs. Try Incremental Search first.", flips:s.flips };
+  // Sign-change validation moved to runRoot() for didactic feedback
   return { ok:true, flips:s.flips };
 }
 
@@ -1912,12 +1912,30 @@ function runRoot(){
 
     // 2. Run pre-check and plot
     const chk = precheckRoot(f, a, b, m);
-    if (!chk.ok) { 
-        appendHTML(alertBox, msgCard('warn','Alert: Precondition Warning', chk.msg)); 
+    if (!chk.ok && !chk.msg.includes("Theorem Violation")) {
+        // Show generic issues such as undefined regions
+        appendHTML(alertBox, msgCard('warn','Alert: Precondition Warning', chk.msg));
     }
     renderBracketSuggestions(chk.flips);
-    plotFx(f,a,b,[], 'iter');
-    if (!chk.ok && (m==='bisection' || m==='falsePosition')) return; 
+    plotFx(f,a,b,[], 'iter'); // Always plot to help students visualize
+
+    // Specific validation for Bisection / False Position
+    if (m === 'bisection' || m === 'falsePosition') {
+      try {
+        const fa = f(a);
+        const fb = f(b);
+        if (fa * fb >= 0) {
+          const msg = `Theorem Violation: Method requires f(a) and f(b) to have opposite signs.<br>
+• f(a) = f(${fmt(a, 4)}) = ${fmt(fa, 4)}<br>
+• f(b) = f(${fmt(b, 4)}) = ${fmt(fb, 4)}<br>
+• f(a) * f(b) = ${fmt(fa * fb, 4)} (which is ≥ 0)`;
+          appendHTML(alertBox, msgCard('warn', 'Theorem Violation', msg));
+          return; // Stop execution if theorem violated
+        }
+      } catch (e) {
+        // Fall through to main catch block if evaluation fails
+      }
+    }
 
     // 3. Execute method
     let headers=[], rows=[], itXs=[], summaryHTML='';
