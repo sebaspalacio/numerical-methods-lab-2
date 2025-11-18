@@ -136,6 +136,9 @@
           <p class="hint">Select a method to see its preconditions and tips.</p>
         </div>
       </details>
+      <div class="mt-2 text-right">
+        <button id="pseudoBtn" class="btn btn-soft py-1 px-3 text-sm">Show Pseudocode</button>
+      </div>
     </div>
     
       <!-- HIGH-VISIBILITY STATUS AREA REMOVED: alerts now live inside their panels -->
@@ -393,11 +396,23 @@
             <li><strong>Root Finding:</strong> Finds the $x$ where $f(x) = 0$.</li>
             <li><strong>Direct Systems:</strong> Solves $Ax=b$ using factorization methods (like LU or Cholesky).</li>
             <li><strong>Iterative Systems:</strong> Solves $Ax=b$ using iterative methods (like Jacobi or Gauss-Seidel).</li>
-            <li><strong>Interpolation:</strong> Finds a polynomial $p(x)$ that passes through a set of data points.</li>
-          </ul>
-        </div>
+          <li><strong>Interpolation:</strong> Finds a polynomial $p(x)$ that passes through a set of data points.</li>
+        </ul>
       </div>
     </div>
+  </div>
+
+  <div id="pseudoModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 hidden" aria-hidden="true">
+    <div class="card max-w-2xl w-full">
+      <div class="flex justify-between items-center mb-4">
+        <h2 id="pseudoTitle" class="text-xl font-semibold">Pseudocode</h2>
+        <button id="closePseudoBtn" class="btn btn-primary">Close</button>
+      </div>
+      <div id="pseudoBody" class="code max-h-[70vh] overflow-y-auto" style="background: #fdfdfd; padding: 1rem; white-space: pre-wrap; line-height: 1.6;">
+        Select a method to see its pseudocode.
+      </div>
+    </div>
+  </div>
 
     <!-- History Drawer -->
     <aside id="historyDrawer" class="drawer" aria-hidden="true">
