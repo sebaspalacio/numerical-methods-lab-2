@@ -391,13 +391,24 @@
               <li><strong>Analyze Results:</strong> The output (status messages, plots, and iteration tables) will appear on the right and bottom.</li>
             </ol>
 
-            <h4 class="font-semibold text-gray-800">Panel Guide:</h4>
-            <ul class="list-disc list-inside space-y-1">
-              <li><strong>Root Finding:</strong> Finds the $x$ where $f(x) = 0$.</li>
-              <li><strong>Direct Systems:</strong> Solves $Ax=b$ using factorization methods (like LU or Cholesky).</li>
-              <li><strong>Iterative Systems:</strong> Solves $Ax=b$ using iterative methods (like Jacobi or Gauss-Seidel).</li>
-            <li><strong>Interpolation:</strong> Finds a polynomial $p(x)$ that passes through a set of data points.</li>
-          </ul>
+            <h4 class="font-semibold text-gray-800 mt-4">Method & Theory Details:</h4>
+            <ul class="list-disc list-inside space-y-2 text-sm">
+              <li>
+                <strong>Error & Tolerance:</strong>
+                <ul class="list-disc list-inside ml-4 text-gray-600">
+                  <li>For <strong>Root Finding</strong>, we use absolute error: $|x_{new} - x_{old}|$.</li>
+                  <li>For <strong>Systems</strong>, we use the Euclidean Norm (Norm 2): $||x^{(k)} - x^{(k-1)}||_2$.</li>
+                </ul>
+              </li>
+              <li>
+                <strong>Automatic Validations:</strong> The app checks theorems before running:
+                <ul class="list-disc list-inside ml-4 text-gray-600">
+                  <li><strong>Roots:</strong> Checks for sign change ($f(a)f(b) < 0$) in bracketing methods.</li>
+                  <li><strong>Iterative:</strong> Checks for zero diagonals and warns if Spectral Radius $\rho(T) \ge 1$.</li>
+                  <li><strong>Direct:</strong> Detects singular matrices and zero pivots.</li>
+                </ul>
+              </li>
+            </ul>
           <div class="mt-4 pt-3 border-t flex items-center">
             <input id="dontShowHelp" type="checkbox" class="mr-2 h-4 w-4">
             <label for="dontShowHelp" class="text-sm text-gray-600">Don't show this automatically next time</label>
