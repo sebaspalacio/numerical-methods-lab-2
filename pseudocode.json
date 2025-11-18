@@ -1,294 +1,210 @@
 {
-  "incremental": {
-    "title": "Incremental Search Pseudocode",
-    "body": [
-      "<strong>INPUT:</strong> function <em>f</em>, start <em>x_0</em>, step <em>delta</em>, max_steps <em>N</em>",
-      "<strong>OUTPUT:</strong> bracket [<em>a</em>, <em>b</em>] or error message",
-      "",
-      "1.  Set <em>x_prev</em> = <em>x_0</em>",
-      "2.  Set <em>f_prev</em> = <em>f</em>(<em>x_prev</em>)",
-      "3.  <strong>FOR</strong> k = 1 <strong>TO</strong> N <strong>DO</strong>:",
-      "4.      Set <em>x_curr</em> = <em>x_prev</em> + <em>delta</em>",
-      "5.      Set <em>f_curr</em> = <em>f</em>(<em>x_curr</em>)",
-      "6.      <strong>IF</strong> <em>f_prev</em> * <em>f_curr</em> < 0 <strong>THEN</strong>:",
-      "7.          <strong>RETURN</strong> [<em>x_prev</em>, <em>x_curr</em>]",
-      "8.      <strong>END IF</strong>",
-      "9.      Set <em>x_prev</em> = <em>x_curr</em>",
-      "10.     Set <em>f_prev</em> = <em>f_curr</em>",
-      "11. <strong>END FOR</strong>",
-      "12. <strong>RETURN</strong> Error: \"No root found within N steps\""
-    ]
-  },
-  "bisection": {
-    "title": "Bisection Method Pseudocode",
-    "body": [
-      "<strong>INPUT:</strong> function <em>f</em>, interval [<em>a</em>, <em>b</em>], <em>TOL</em>, <em>N</em>",
-      "<strong>OUTPUT:</strong> approximate root <em>x_m</em> or error message",
-      "",
-      "1.  Set <em>f_a</em> = <em>f</em>(<em>a</em>)",
-      "2.  <strong>IF</strong> <em>f</em>(<em>a</em>) * <em>f</em>(<em>b</em>) >= 0 <strong>THEN</strong> <strong>RETURN</strong> Error: \"f(a) and f(b) must have opposite signs\"",
-      "3.  <strong>FOR</strong> k = 1 <strong>TO</strong> N <strong>DO</strong>:",
-      "4.      Set <em>x_m</em> = (<em>a</em> + <em>b</em>) / 2",
-      "5.      Set <em>f_m</em> = <em>f</em>(<em>x_m</em>)",
-      "6.      <strong>IF</strong> <em>f_m</em> == 0 <strong>OR</strong> (<em>b</em> - <em>a</em>) / 2 < <em>TOL</em> <strong>THEN</strong> <strong>RETURN</strong> <em>x_m</em>",
-      "7.      <strong>IF</strong> <em>f_a</em> * <em>f_m</em> < 0 <strong>THEN</strong>:",
-      "8.          Set <em>b</em> = <em>x_m</em>",
-      "9.      <strong>ELSE</strong>:",
-      "10.         Set <em>a</em> = <em>x_m</em>",
-      "11.         Set <em>f_a</em> = <em>f_m</em>",
-      "12.     <strong>END IF</strong>",
-      "13. <strong>END FOR</strong>",
-      "14. <strong>RETURN</strong> Error: \"Method failed after N iterations\""
-    ]
-  },
-  "falsePosition": {
-    "title": "False Position Method Pseudocode",
-    "body": [
-      "<strong>INPUT:</strong> function <em>f</em>, interval [<em>a</em>, <em>b</em>], <em>TOL</em>, <em>N</em>",
-      "<strong>OUTPUT:</strong> approximate root <em>x_m</em> or error message",
-      "",
-      "1.  Set <em>f_a</em> = <em>f</em>(<em>a</em>), <em>f_b</em> = <em>f</em>(<em>b</em>)",
-      "2.  <strong>IF</strong> <em>f_a</em> * <em>f_b</em> >= 0 <strong>THEN</strong> <strong>RETURN</strong> Error: \"f(a) and f(b) must have opposite signs\"",
-      "3.  Set <em>x_m_prev</em> = <em>a</em>",
-      "4.  <strong>FOR</strong> k = 1 <strong>TO</strong> N <strong>DO</strong>:",
-      "5.      Set <em>x_m</em> = <em>b</em> - (<em>f_b</em> * (<em>b</em> - <em>a</em>)) / (<em>f_b</em> - <em>f_a</em>)",
-      "6.      Set <em>f_m</em> = <em>f</em>(<em>x_m</em>)",
-      "7.      Set <em>error</em> = |<em>x_m</em> - <em>x_m_prev</em>|",
-      "8.      <strong>IF</strong> <em>f_m</em> == 0 <strong>OR</strong> <em>error</em> < <em>TOL</em> <strong>THEN</strong> <strong>RETURN</strong> <em>x_m</em>",
-      "9.      <strong>IF</strong> <em>f_a</em> * <em>f_m</em> < 0 <strong>THEN</strong>:",
-      "10.         Set <em>b</em> = <em>x_m</em>, <em>f_b</em> = <em>f_m</em>",
-      "11.     <strong>ELSE</strong>:",
-      "12.         Set <em>a</em> = <em>x_m</em>, <em>f_a</em> = <em>f_m</em>",
-      "13.     <strong>END IF</strong>",
-      "14.     Set <em>x_m_prev</em> = <em>x_m</em>",
-      "15. <strong>END FOR</strong>",
-      "16. <strong>RETURN</strong> Error: \"Method failed after N iterations\""
-    ]
-  },
-  "fixedPoint": {
-    "title": "Fixed Point Method Pseudocode",
-    "body": [
-      "<strong>INPUT:</strong> function <em>g</em>, initial guess <em>x_0</em>, <em>TOL</em>, <em>N</em>",
-      "<strong>OUTPUT:</strong> approximate root <em>x_1</em> or error message",
-      "",
-      "1.  <strong>FOR</strong> k = 1 <strong>TO</strong> N <strong>DO</strong>:",
-      "2.      Set <em>x_1</em> = <em>g</em>(<em>x_0</em>)",
-      "3.      Set <em>error</em> = |<em>x_1</em> - <em>x_0</em>|",
-      "4.      <strong>IF</strong> <em>error</em> < <em>TOL</em> <strong>THEN</strong> <strong>RETURN</strong> <em>x_1</em>",
-      "5.      Set <em>x_0</em> = <em>x_1</em>",
-      "6.  <strong>END FOR</strong>",
-      "7.  <strong>RETURN</strong> Error: \"Method failed after N iterations\""
-    ]
-  },
-  "newton_root": {
-    "title": "Newton-Raphson Method Pseudocode",
-    "body": [
-      "<strong>INPUT:</strong> function <em>f</em>, derivative <em>f'</em>, initial guess <em>x_0</em>, <em>TOL</em>, <em>N</em>",
-      "<strong>OUTPUT:</strong> approximate root <em>x_1</em> or error message",
-      "",
-      "1.  <strong>FOR</strong> k = 1 <strong>TO</strong> N <strong>DO</strong>:",
-      "2.      Set <em>f_x</em> = <em>f</em>(<em>x_0</em>)",
-      "3.      Set <em>fp_x</em> = <em>f'</em>(<em>x_0</em>)",
-      "4.      <strong>IF</strong> |<em>fp_x</em>| < 1e-14 <strong>THEN</strong> <strong>RETURN</strong> Error: \"Derivative is zero\"",
-      "5.      Set <em>x_1</em> = <em>x_0</em> - <em>f_x</em> / <em>fp_x</em>",
-      "6.      Set <em>error</em> = |<em>x_1</em> - <em>x_0</em>|",
-      "7.      <strong>IF</strong> <em>error</em> < <em>TOL</em> <strong>THEN</strong> <strong>RETURN</strong> <em>x_1</em>",
-      "8.      Set <em>x_0</em> = <em>x_1</em>",
-      "9.  <strong>END FOR</strong>",
-      "10. <strong>RETURN</strong> Error: \"Method failed after N iterations\""
-    ]
-  },
-  "secant": {
-    "title": "Secant Method Pseudocode",
-    "body": [
-      "<strong>INPUT:</strong> function <em>f</em>, guesses <em>x_0</em>, <em>x_1</em>, <em>TOL</em>, <em>N</em>",
-      "<strong>OUTPUT:</strong> approximate root <em>x_2</em> or error message",
-      "",
-      "1.  Set <em>f_0</em> = <em>f</em>(<em>x_0</em>)",
-      "2.  Set <em>f_1</em> = <em>f</em>(<em>x_1</em>)",
-      "3.  <strong>FOR</strong> k = 1 <strong>TO</strong> N <strong>DO</strong>:",
-      "4.      Set <em>denominator</em> = <em>f_1</em> - <em>f_0</em>",
-      "5.      <strong>IF</strong> |<em>denominator</em>| < 1e-14 <strong>THEN</strong> <strong>RETURN</strong> Error: \"Denominator is zero\"",
-      "6.      Set <em>x_2</em> = <em>x_1</em> - <em>f_1</em> * (<em>x_1</em> - <em>x_0</em>) / <em>denominator</em>",
-      "7.      Set <em>error</em> = |<em>x_2</em> - <em>x_1</em>|",
-      "8.      <strong>IF</strong> <em>error</em> < <em>TOL</em> <strong>THEN</strong> <strong>RETURN</strong> <em>x_2</em>",
-      "9.      Set <em>x_0</em> = <em>x_1</em>, <em>f_0</em> = <em>f_1</em>",
-      "10.     Set <em>x_1</em> = <em>x_2</em>, <em>f_1</em> = <em>f</em>(<em>x_2</em>)",
-      "11. <strong>END FOR</strong>",
-      "12. <strong>RETURN</strong> Error: \"Method failed after N iterations\""
-    ]
-  },
-  "multiple": {
-    "title": "Multiple Roots Method Pseudocode",
-    "body": [
-      "<strong>INPUT:</strong> function <em>f</em>, <em>f'</em>, <em>f''</em>, initial guess <em>x_0</em>, <em>TOL</em>, <em>N</em>",
-      "<strong>OUTPUT:</strong> approximate root <em>x_1</em> or error message",
-      "",
-      "1.  <strong>FOR</strong> k = 1 <strong>TO</strong> N <strong>DO</strong>:",
-      "2.      Set <em>f_x</em> = <em>f</em>(<em>x_0</em>)",
-      "3.      Set <em>fp_x</em> = <em>f'</em>(<em>x_0</em>)",
-      "4.      Set <em>fpp_x</em> = <em>f''</em>(<em>x_0</em>)",
-      "5.      Set <em>denominator</em> = (<em>fp_x</em> * <em>fp_x</em>) - (<em>f_x</em> * <em>fpp_x</em>)",
-      "6.      <strong>IF</strong> |<em>denominator</em>| < 1e-14 <strong>THEN</strong> <strong>RETURN</strong> Error: \"Unstable step, denominator is zero\"",
-      "7.      Set <em>x_1</em> = <em>x_0</em> - (<em>f_x</em> * <em>fp_x</em>) / <em>denominator</em>",
-      "8.      Set <em>error</em> = |<em>x_1</em> - <em>x_0</em>|",
-      "9.      <strong>IF</strong> <em>error</em> < <em>TOL</em> <strong>THEN</strong> <strong>RETURN</strong> <em>x_1</em>",
-      "10.     Set <em>x_0</em> = <em>x_1</em>",
-      "11. <strong>END FOR</strong>",
-      "12. <strong>RETURN</strong> Error: \"Method failed after N iterations\""
-    ]
-  },
-  "gauss_partial": {
-    "title": "Gaussian Elimination (Partial Pivot) Pseudocode",
-    "body": [
-      "<strong>INPUT:</strong> Matrix <em>A</em>, vector <em>b</em>",
-      "<strong>OUTPUT:</strong> solution vector <em>x</em> or error message",
-      "",
-      "1.  Set <em>n</em> = number of rows in <em>A</em>",
-      "2.  Create augmented matrix <em>Ab</em> = [<em>A</em> | <em>b</em>]",
-      "3.  <strong>FOR</strong> k = 0 <strong>TO</strong> n-2 <strong>DO</strong>: (Forward Elimination)",
-      "4.      Find pivot row <em>p</em> >= <em>k</em> with max |<em>Ab</em>[<em>p</em>, <em>k</em>]|",
-      "5.      <strong>IF</strong> |<em>Ab</em>[<em>p</em>, <em>k</em>]| < 1e-14 <strong>THEN</strong> <strong>RETURN</strong> Error: \"Singular Matrix\"",
-      "6.      <strong>IF</strong> <em>p</em> != <em>k</em> <strong>THEN</strong> Swap rows <em>p</em> and <em>k</em> in <em>Ab</em>",
-      "7.      <strong>FOR</strong> i = k+1 <strong>TO</strong> n-1 <strong>DO</strong>:",
-      "8.          Set <em>multiplier</em> = <em>Ab</em>[<em>i</em>, <em>k</em>] / <em>Ab</em>[<em>k</em>, <em>k</em>]",
-      "9.          <strong>FOR</strong> j = k <strong>TO</strong> n <strong>DO</strong>:",
-      "10.             <em>Ab</em>[<em>i</em>, <em>j</em>] = <em>Ab</em>[<em>i</em>, <em>j</em>] - <em>multiplier</em> * <em>Ab</em>[<em>k</em>, <em>j</em>]",
-      "11.         <strong>END FOR</strong>",
-      "12.     <strong>END FOR</strong>",
-      "13. <strong>END FOR</strong>",
-      "14. Call BackwardSubstitution(<em>Ab</em>) to find <em>x</em>",
-      "15. <strong>RETURN</strong> <em>x</em>"
-    ]
-  },
-  "lu_gaussian": {
-    "title": "LU Factorization (Simple) Pseudocode",
-    "body": [
-      "<strong>INPUT:</strong> Matrix <em>A</em>",
-      "<strong>OUTPUT:</strong> Matrices <em>L</em> and <em>U</em> or error message",
-      "",
-      "1.  Set <em>n</em> = number of rows in <em>A</em>",
-      "2.  Initialize <em>L</em> = Identity(<em>n</em>), <em>U</em> = copy(<em>A</em>)",
-      "3.  <strong>FOR</strong> k = 0 <strong>TO</strong> n-2 <strong>DO</strong>:",
-      "4.      <strong>IF</strong> |<em>U</em>[<em>k</em>, <em>k</em>]| < 1e-14 <strong>THEN</strong> <strong>RETURN</strong> Error: \"Zero Pivot\"",
-      "5.      <strong>FOR</strong> i = k+1 <strong>TO</strong> n-1 <strong>DO</strong>:",
-      "6.          Set <em>multiplier</em> = <em>U</em>[<em>i</em>, <em>k</em>] / <em>U</em>[<em>k</em>, <em>k</em>]",
-      "7.          Set <em>L</em>[<em>i</em>, <em>k</em>] = <em>multiplier</em>",
-      "8.          <strong>FOR</strong> j = k <strong>TO</strong> n-1 <strong>DO</strong>:",
-      "9.              <em>U</em>[<em>i</em>, <em>j</em>] = <em>U</em>[<em>i</em>, <em>j</em>] - <em>multiplier</em> * <em>U</em>[<em>k</em>, <em>j</em>]",
-      "10.         <strong>END FOR</strong>",
-      "11.     <strong>END FOR</strong>",
-      "12. <strong>END FOR</strong>",
-      "13. <strong>RETURN</strong> <em>L</em>, <em>U</em>"
-    ]
-  },
-  "cholesky": {
-    "title": "Cholesky Factorization Pseudocode",
-    "body": [
-      "<strong>INPUT:</strong> Matrix <em>A</em>",
-      "<strong>OUTPUT:</strong> Matrix <em>L</em> or error message",
-      "",
-      "1.  <strong>IF</strong> <em>A</em> is not symmetric <strong>THEN</strong> <strong>RETURN</strong> Error: \"Matrix is not symmetric\"",
-      "2.  Set <em>n</em> = number of rows in <em>A</em>",
-      "3.  Initialize <em>L</em> = Zeros(<em>n</em>, <em>n</em>)",
-      "4.  <strong>FOR</strong> i = 0 <strong>TO</strong> n-1 <strong>DO</strong>:",
-      "5.      <strong>FOR</strong> j = 0 <strong>TO</strong> i <strong>DO</strong>:",
-      "6.          Set <em>sum</em> = 0",
-      "7.          <strong>FOR</strong> k = 0 <strong>TO</strong> j-1 <strong>DO</strong>: <em>sum</em> = <em>sum</em> + <em>L</em>[<em>i</em>, <em>k</em>] * <em>L</em>[<em>j</em>, <em>k</em>]",
-      "8.          <strong>IF</strong> i == j <strong>THEN</strong>:",
-      "9.              Set <em>val</em> = <em>A</em>[<em>i</em>, <em>i</em>] - <em>sum</em>",
-      "10.             <strong>IF</strong> <em>val</em> <= 0 <strong>THEN</strong> <strong>RETURN</strong> Error: \"Matrix not positive-definite\"",
-      "11.             <em>L</em>[<em>i</em>, <em>i</em>] = sqrt(<em>val</em>)",
-      "12.         <strong>ELSE</strong>:",
-      "13.             <em>L</em>[<em>i</em>, <em>j</em>] = (<em>A</em>[<em>i</em>, <em>j</em>] - <em>sum</em>) / <em>L</em>[<em>j</em>, <em>j</em>]",
-      "14.         <strong>END IF</strong>",
-      "15.     <strong>END FOR</strong>",
-      "16. <strong>END FOR</strong>",
-      "17. <strong>RETURN</strong> <em>L</em>"
-    ]
-  },
-  "jacobi": {
-    "title": "Jacobi Method Pseudocode",
-    "body": [
-      "<strong>INPUT:</strong> Matrix <em>A</em>, vector <em>b</em>, initial guess <em>x_0</em>, <em>TOL</em>, <em>N</em>",
-      "<strong>OUTPUT:</strong> solution vector <em>x</em> or error message",
-      "",
-      "1.  Set <em>n</em> = number of rows in <em>A</em>",
-      "2.  Initialize <em>x_curr</em> = <em>x_0</em>",
-      "3.  <strong>FOR</strong> k = 1 <strong>TO</strong> N <strong>DO</strong>:",
-      "4.      Initialize <em>x_next</em> = Zeros(<em>n</em>)",
-      "5.      <strong>FOR</strong> i = 0 <strong>TO</strong> n-1 <strong>DO</strong>:",
-      "6.          Set <em>sum</em> = 0",
-      "7.          <strong>FOR</strong> j = 0 <strong>TO</strong> n-1 <strong>DO</strong>:",
-      "8.              <strong>IF</strong> i != j <strong>THEN</strong> <em>sum</em> = <em>sum</em> + <em>A</em>[<em>i</em>, <em>j</em>] * <em>x_curr</em>[<em>j</em>]",
-      "9.          <strong>END FOR</strong>",
-      "10.         <strong>IF</strong> |<em>A</em>[<em>i</em>, <em>i</em>]| < 1e-14 <strong>THEN</strong> <strong>RETURN</strong> Error: \"Zero on diagonal\"",
-      "11.         <em>x_next</em>[<em>i</em>] = (<em>b</em>[<em>i</em>] - <em>sum</em>) / <em>A</em>[<em>i</em>, <em>i</em>]",
-      "12.     <strong>END FOR</strong>",
-      "13.     Set <em>error</em> = norm(<em>x_next</em> - <em>x_curr</em>)",
-      "14.     <strong>IF</strong> <em>error</em> < <em>TOL</em> <strong>THEN</strong> <strong>RETURN</strong> <em>x_next</em>",
-      "15.     Set <em>x_curr</em> = <em>x_next</em>",
-      "16. <strong>END FOR</strong>",
-      "17. <strong>RETURN</strong> Error: \"Method failed after N iterations\""
-    ]
-  },
-  "gauss_seidel": {
-    "title": "Gauss-Seidel Method Pseudocode",
-    "body": [
-      "<strong>INPUT:</strong> Matrix <em>A</em>, vector <em>b</em>, initial guess <em>x_0</em>, <em>TOL</em>, <em>N</em>",
-      "<strong>OUTPUT:</strong> solution vector <em>x</em> or error message",
-      "",
-      "1.  Set <em>n</em> = number of rows in <em>A</em>",
-      "2.  Initialize <em>x</em> = <em>x_0</em>",
-      "3.  <strong>FOR</strong> k = 1 <strong>TO</strong> N <strong>DO</strong>:",
-      "4.      Set <em>x_old</em> = copy(<em>x</em>)",
-      "5.      <strong>FOR</strong> i = 0 <strong>TO</strong> n-1 <strong>DO</strong>:",
-      "6.          Set <em>sum</em> = 0",
-      "7.          <strong>FOR</strong> j = 0 <strong>TO</strong> n-1 <strong>DO</strong>:",
-      "8.              <strong>IF</strong> i != j <strong>THEN</strong> <em>sum</em> = <em>sum</em> + <em>A</em>[<em>i</em>, <em>j</em>] * <em>x</em>[<em>j</em>]",
-      "9.          <strong>END FOR</strong>",
-      "10.         <strong>IF</strong> |<em>A</em>[<em>i</em>, <em>i</em>]| < 1e-14 <strong>THEN</strong> <strong>RETURN</strong> Error: \"Zero on diagonal\"",
-      "11.         <em>x</em>[<em>i</em>] = (<em>b</em>[<em>i</em>] - <em>sum</em>) / <em>A</em>[<em>i</em>, <em>i</em>]",
-      "12.     <strong>END FOR</strong>",
-      "13.     Set <em>error</em> = norm(<em>x</em> - <em>x_old</em>)",
-      "14.     <strong>IF</strong> <em>error</em> < <em>TOL</em> <strong>THEN</strong> <strong>RETURN</strong> <em>x</em>",
-      "15. <strong>END FOR</strong>",
-      "16. <strong>RETURN</strong> Error: \"Method failed after N iterations\""
-    ]
-  },
-  "newton_interp": {
-    "title": "Newton (Divided Diffs) Pseudocode",
-    "body": [
-      "<strong>INPUT:</strong> <em>n</em> points (<em>x_0</em>, <em>y_0</em>) ... (<em>x_n</em>, <em>y_n</em>)",
-      "<strong>OUTPUT:</strong> coefficients <em>b_0</em> ... <em>b_n</em>",
-      "",
-      "1.  Set <em>n</em> = number of points - 1",
-      "2.  Initialize Table[<em>n</em>, <em>n</em>]",
-      "3.  <strong>FOR</strong> i = 0 <strong>TO</strong> n <strong>DO</strong>: (Set first column)",
-      "4.      Table[<em>i</em>, 0] = <em>y_i</em>",
-      "5.  <strong>END FOR</strong>",
-      "6.  <strong>FOR</strong> k = 1 <strong>TO</strong> n <strong>DO</strong>: (Compute columns)",
-      "7.      <strong>FOR</strong> i = 0 <strong>TO</strong> n-k <strong>DO</strong>:",
-      "8.          Set <em>numerator</em> = Table[<em>i</em>+1, <em>k</em>-1] - Table[<em>i</em>, <em>k</em>-1]",
-      "9.          Set <em>denominator</em> = <em>x</em>[<em>i</em>+<em>k</em>] - <em>x</em>[<em>i</em>]",
-      "10.         <strong>IF</strong> |<em>denominator</em>| < 1e-14 <strong>THEN</strong> <strong>RETURN</strong> Error: \"X-values are duplicated\"",
-      "11.         Table[<em>i</em>, <em>k</em>] = <em>numerator</em> / <em>denominator</em>",
-      "12.     <strong>END FOR</strong>",
-      "13. <strong>END FOR</strong>",
-      "14. <strong>RETURN</strong> the diagonal of Table (Table[0,0], Table[0,1], ... Table[0,n])"
-    ]
-  },
-  "spline_linear": {
-    "title": "Linear Splines Pseudocode",
-    "body": [
-      "<strong>INPUT:</strong> <em>n+1</em> points (<em>x_0</em>, <em>y_0</em>) ... (<em>x_n</em>, <em>y_n</em>)",
-      "<strong>OUTPUT:</strong> <em>n</em> linear functions <em>S_i(x) = m_i x + c_i</em>",
-      "",
-      "1.  <strong>FOR</strong> i = 0 <strong>TO</strong> n-1 <strong>DO</strong>:",
-      "2.      Set <em>m_i</em> = (<em>y</em>[<em>i</em>+1] - <em>y</em>[<em>i</em>]) / (<em>x</em>[<em>i</em>+1] - <em>x</em>[<em>i</em>])",
-      "3.      Set <em>c_i</em> = <em>y</em>[<em>i</em>] - <em>m_i</em> * <em>x</em>[<em>i</em>]",
-      "4.      <strong>PRINT</strong> \"S_i(x) = {<em>m_i</em>}x + {<em>c_i</em>} for x in [<em>x_i</em>, <em>x_i+1</em>]\"",
-      "5.  <strong>END FOR</strong>"
-    ]
-  }
+  "incremental": [
+    "<strong>INPUT:</strong> function <em>f</em>, start <em>x0</em>, step <em>delta</em>, max_steps <em>N</em>",
+    "<strong>OUTPUT:</strong> bracket [<em>a</em>, <em>b</em>] or failure",
+    "1. Set <em>x_prev</em> = <em>x0</em>, <em>f_prev</em> = <em>f</em>(<em>x_prev</em>)",
+    "2. <strong>FOR</strong> k = 1 <strong>TO</strong> N <strong>DO</strong>:",
+    "3.     Set <em>x_curr</em> = <em>x_prev</em> + <em>delta</em>",
+    "4.     Set <em>f_curr</em> = <em>f</em>(<em>x_curr</em>)",
+    "5.     <strong>IF</strong> <em>f_prev</em> * <em>f_curr</em> < 0 <strong>THEN</strong> <strong>RETURN</strong> [<em>x_prev</em>, <em>x_curr</em>]",
+    "6.     Set <em>x_prev</em> = <em>x_curr</em>, <em>f_prev</em> = <em>f_curr</em>",
+    "7. <strong>END FOR</strong>",
+    "8. <strong>RETURN</strong> Error: No root found"
+  ],
+  "bisection": [
+    "<strong>INPUT:</strong> <em>f</em>, <em>a</em>, <em>b</em>, <em>TOL</em>, <em>N</em>",
+    "1. <strong>IF</strong> <em>f(a)*f(b)</em> >= 0 <strong>RETURN</strong> Error",
+    "2. <strong>FOR</strong> k = 1 <strong>TO</strong> N <strong>DO</strong>:",
+    "3.     Set <em>m</em> = (<em>a</em>+<em>b</em>)/2",
+    "4.     <strong>IF</strong> <em>f(m)</em> == 0 <strong>OR</strong> (<em>b</em>-<em>a</em>)/2 < <em>TOL</em> <strong>RETURN</strong> <em>m</em>",
+    "5.     <strong>IF</strong> <em>f(a)*f(m)</em> < 0 <strong>THEN</strong> <em>b</em> = <em>m</em> <strong>ELSE</strong> <em>a</em> = <em>m</em>",
+    "6. <strong>END FOR</strong>",
+    "7. <strong>RETURN</strong> Error: Max iterations"
+  ],
+  "falsePosition": [
+    "<strong>INPUT:</strong> <em>f</em>, <em>a</em>, <em>b</em>, <em>TOL</em>, <em>N</em>",
+    "1. <strong>IF</strong> <em>f(a)*f(b)</em> >= 0 <strong>RETURN</strong> Error",
+    "2. <strong>FOR</strong> k = 1 <strong>TO</strong> N <strong>DO</strong>:",
+    "3.     Set <em>m</em> = <em>b</em> - <em>f(b)</em>*(<em>b</em>-<em>a</em>)/(<em>f(b)</em>-<em>f(a)</em>)",
+    "4.     <strong>IF</strong> <em>f(m)</em> == 0 <strong>OR</strong> Error < <em>TOL</em> <strong>RETURN</strong> <em>m</em>",
+    "5.     <strong>IF</strong> <em>f(a)*f(m)</em> < 0 <strong>THEN</strong> <em>b</em> = <em>m</em> <strong>ELSE</strong> <em>a</em> = <em>m</em>",
+    "6. <strong>END FOR</strong>",
+    "7. <strong>RETURN</strong> Error"
+  ],
+  "fixedPoint": [
+    "<strong>INPUT:</strong> <em>g</em>, <em>x0</em>, <em>TOL</em>, <em>N</em>",
+    "1. <strong>FOR</strong> k = 1 <strong>TO</strong> N <strong>DO</strong>:",
+    "2.     Set <em>x1</em> = <em>g(x0)</em>",
+    "3.     <strong>IF</strong> |<em>x1</em>-<em>x0</em>| < <em>TOL</em> <strong>RETURN</strong> <em>x1</em>",
+    "4.     Set <em>x0</em> = <em>x1</em>",
+    "5. <strong>END FOR</strong>",
+    "6. <strong>RETURN</strong> Error"
+  ],
+  "newton_root": [
+    "<strong>INPUT:</strong> <em>f</em>, <em>f'</em>, <em>x0</em>, <em>TOL</em>, <em>N</em>",
+    "1. <strong>FOR</strong> k = 1 <strong>TO</strong> N <strong>DO</strong>:",
+    "2.     <strong>IF</strong> |<em>f'(x0)</em>| < epsilon <strong>RETURN</strong> Error: Derivative zero",
+    "3.     Set <em>x1</em> = <em>x0</em> - <em>f(x0)</em>/<em>f'(x0)</em>",
+    "4.     <strong>IF</strong> |<em>x1</em>-<em>x0</em>| < <em>TOL</em> <strong>RETURN</strong> <em>x1</em>",
+    "5.     Set <em>x0</em> = <em>x1</em>",
+    "6. <strong>END FOR</strong>",
+    "7. <strong>RETURN</strong> Error"
+  ],
+  "secant": [
+    "<strong>INPUT:</strong> <em>f</em>, <em>x0</em>, <em>x1</em>, <em>TOL</em>, <em>N</em>",
+    "1. <strong>FOR</strong> k = 1 <strong>TO</strong> N <strong>DO</strong>:",
+    "2.     Set <em>denom</em> = <em>f(x1)</em> - <em>f(x0)</em>",
+    "3.     <strong>IF</strong> <em>denom</em> == 0 <strong>RETURN</strong> Error",
+    "4.     Set <em>x2</em> = <em>x1</em> - <em>f(x1)</em>*(<em>x1</em>-<em>x0</em>)/<em>denom</em>",
+    "5.     <strong>IF</strong> |<em>x2</em>-<em>x1</em>| < <em>TOL</em> <strong>RETURN</strong> <em>x2</em>",
+    "6.     Set <em>x0</em>=<em>x1</em>, <em>x1</em>=<em>x2</em>",
+    "7. <strong>END FOR</strong>",
+    "8. <strong>RETURN</strong> Error"
+  ],
+  "multiple": [
+    "<strong>INPUT:</strong> <em>f</em>, <em>f'</em>, <em>f''</em>, <em>x0</em>, <em>TOL</em>, <em>N</em>",
+    "1. <strong>FOR</strong> k = 1 <strong>TO</strong> N <strong>DO</strong>:",
+    "2.     Set <em>denom</em> = (<em>f'(x0)</em>)^2 - <em>f(x0)f''(x0)</em>",
+    "3.     <strong>IF</strong> <em>denom</em> == 0 <strong>RETURN</strong> Error",
+    "4.     Set <em>x1</em> = <em>x0</em> - (<em>f(x0)f'(x0)</em>) / <em>denom</em>",
+    "5.     <strong>IF</strong> |<em>x1</em>-<em>x0</em>| < <em>TOL</em> <strong>RETURN</strong> <em>x1</em>",
+    "6.     Set <em>x0</em> = <em>x1</em>",
+    "7. <strong>END FOR</strong>",
+    "8. <strong>RETURN</strong> Error"
+  ],
+  "gauss_simple": [
+    "<strong>INPUT:</strong> Matrix <em>A</em>, vector <em>b</em>",
+    "1. Form augmented matrix <em>Ab</em> = [<em>A</em>|<em>b</em>]",
+    "2. <strong>FOR</strong> k = 0 <strong>TO</strong> n-1 (Elimination):",
+    "3.     <strong>IF</strong> <em>Ab[k,k]</em> == 0 <strong>RETURN</strong> Error: Zero pivot",
+    "4.     <strong>FOR</strong> i = k+1 <strong>TO</strong> n:",
+    "5.         <em>m</em> = <em>Ab[i,k]</em> / <em>Ab[k,k]</em>",
+    "6.         Row(i) = Row(i) - <em>m</em> * Row(k)",
+    "7. <strong>END FOR</strong>",
+    "8. <em>x</em> = BackwardSubstitution(<em>Ab</em>)",
+    "9. <strong>RETURN</strong> <em>x</em>"
+  ],
+  "gauss_partial": [
+    "Same as Simple Gaussian, but at step k:",
+    "1. Find row <em>p</em> (>= k) with max |<em>Ab[p,k]</em>|",
+    "2. Swap Row(k) and Row(p)",
+    "3. Proceed with elimination..."
+  ],
+  "gauss_total": [
+    "Same as Simple Gaussian, but at step k:",
+    "1. Find element (<em>p,q</em>) in submatrix with max value",
+    "2. Swap Row(k) <-> Row(p)",
+    "3. Swap Col(k) <-> Col(q) (Remember permutation!)",
+    "4. Proceed with elimination...",
+    "5. Un-permute solution <em>x</em> at the end"
+  ],
+  "lu_gaussian": [
+    "<strong>INPUT:</strong> <em>A</em>",
+    "<strong>OUTPUT:</strong> <em>L</em>, <em>U</em>",
+    "1. <em>L</em> = Identity, <em>U</em> = Copy(<em>A</em>)",
+    "2. <strong>FOR</strong> k = 0 <strong>TO</strong> n-1:",
+    "3.     <strong>FOR</strong> i = k+1 <strong>TO</strong> n:",
+    "4.         <em>m</em> = <em>U[i,k]</em> / <em>U[k,k]</em>",
+    "5.         <em>L[i,k]</em> = <em>m</em>",
+    "6.         Row(i) of U = Row(i) - <em>m</em> * Row(k)",
+    "7. <strong>RETURN</strong> <em>L</em>, <em>U</em>"
+  ],
+  "lu_partial_pivot": [
+    "<strong>INPUT:</strong> <em>A</em>",
+    "<strong>OUTPUT:</strong> <em>P</em>, <em>L</em>, <em>U</em>",
+    "1. Initialize <em>P</em> = Identity",
+    "2. During elimination, if swapping Rows i and k:",
+    "3.     Swap Rows i and k in <em>U</em>",
+    "4.     Swap Rows i and k in <em>P</em>",
+    "5.     Swap multipliers in <em>L</em> (carefully)",
+    "6. <strong>RETURN</strong> <em>P</em>, <em>L</em>, <em>U</em>"
+  ],
+  "doolittle": [
+    "<strong>Goal:</strong> <em>A</em> = <em>L</em><em>U</em> where <em>L[i,i]</em> = 1",
+    "1. <strong>FOR</strong> k = 0 <strong>TO</strong> n-1:",
+    "2.     Calc <em>U</em> row k: <em>u_kj</em> = <em>a_kj</em> - sum(<em>l_km</em>*<em>u_mj</em>)",
+    "3.     Calc <em>L</em> col k: <em>l_ik</em> = (<em>a_ik</em> - sum(...)) / <em>u_kk</em>",
+    "4. <strong>RETURN</strong> <em>L</em>, <em>U</em>"
+  ],
+  "crout": [
+    "<strong>Goal:</strong> <em>A</em> = <em>L</em><em>U</em> where <em>U[i,i]</em> = 1",
+    "1. Similar to Doolittle but invert roles of L and U diagonal",
+    "2. Calc <em>L</em> col k first",
+    "3. Calc <em>U</em> row k dividing by <em>l_kk</em>"
+  ],
+  "cholesky": [
+    "<strong>INPUT:</strong> Symmetric, Positive-Definite <em>A</em>",
+    "1. <strong>FOR</strong> i = 0 <strong>TO</strong> n-1:",
+    "2.     <strong>FOR</strong> j = 0 <strong>TO</strong> i:",
+    "3.         <em>sum</em> = sum(<em>L[i,k]*L[j,k]</em>)",
+    "4.         <strong>IF</strong> i == j: <em>L[i,i]</em> = sqrt(<em>A[i,i]</em> - <em>sum</em>)",
+    "5.         <strong>ELSE</strong>: <em>L[i,j]</em> = (<em>A[i,j]</em> - <em>sum</em>) / <em>L[j,j]</em>",
+    "6. <strong>RETURN</strong> <em>L</em>"
+  ],
+  "jacobi": [
+    "<strong>INPUT:</strong> <em>A</em>, <em>b</em>, <em>x0</em>, <em>TOL</em>",
+    "1. <strong>FOR</strong> k = 1 <strong>TO</strong> N:",
+    "2.     <strong>FOR</strong> i = 0 <strong>TO</strong> n:",
+    "3.         <em>sum</em> = sum(<em>A[i,j]*x0[j]</em>) for j != i",
+    "4.         <em>x1[i]</em> = (<em>b[i]</em> - <em>sum</em>) / <em>A[i,i]</em>",
+    "5.     <strong>IF</strong> norm(<em>x1</em>-<em>x0</em>) < <em>TOL</em> <strong>RETURN</strong> <em>x1</em>",
+    "6.     <em>x0</em> = <em>x1</em>",
+    "7. <strong>RETURN</strong> Error"
+  ],
+  "gauss_seidel": [
+    "<strong>INPUT:</strong> <em>A</em>, <em>b</em>, <em>x</em>, <em>TOL</em>",
+    "1. Same as Jacobi, but use NEW values of <em>x[j]</em> as soon as available:",
+    "2. <em>x[i]</em> = (<em>b[i]</em> - sum(known <em>x</em> terms)) / <em>A[i,i]</em>",
+    "3. Check convergence after full pass"
+  ],
+  "sor": [
+    "<strong>INPUT:</strong> <em>A</em>, <em>b</em>, <em>x</em>, <em>w</em>, <em>TOL</em>",
+    "1. <strong>FOR</strong> i = 0 <strong>TO</strong> n:",
+    "2.     <em>gs_val</em> = (<em>b[i]</em> - sum(...)) / <em>A[i,i]</em>",
+    "3.     <em>x[i]</em> = (1-<em>w</em>)*<em>x[i]</em> + <em>w</em>*<em>gs_val</em>",
+    "4. Check convergence"
+  ],
+  "vandermonde": [
+    "<strong>INPUT:</strong> Points (x,y)",
+    "1. Build Matrix <em>V</em> where <em>V[i,j]</em> = <em>x_i</em>^(n-1-j)",
+    "2. Solve system <em>V</em> * <em>a</em> = <em>y</em>",
+    "3. <strong>RETURN</strong> Coefficients <em>a</em>"
+  ],
+  "newton_interp": [
+    "<strong>INPUT:</strong> Points (x,y)",
+    "1. Initialize Divided Difference Table",
+    "2. Col 0 = y values",
+    "3. <strong>FOR</strong> j = 1 <strong>TO</strong> n:",
+    "4.     <em>Table[i,j]</em> = (<em>Table[i+1,j-1]</em> - <em>Table[i,j-1]</em>) / (<em>x[i+j]</em> - <em>x[i]</em>)",
+    "5. <strong>RETURN</strong> Diagonal elements (coefficients)"
+  ],
+  "lagrange": [
+    "<strong>INPUT:</strong> Points (x,y)",
+    "1. <strong>FOR</strong> k = 0 <strong>TO</strong> n:",
+    "2.     Construct <em>L_k(x)</em> = product( (x-x_j)/(x_k-x_j) ) for j!=k",
+    "3. Polynomial <em>P(x)</em> = sum( <em>y_k</em> * <em>L_k(x)</em> )"
+  ],
+  "spline_linear": [
+    "<strong>INPUT:</strong> Points (x,y)",
+    "1. <strong>FOR</strong> i = 0 <strong>TO</strong> n-1:",
+    "2.     <em>m</em> = (<em>y[i+1]</em> - <em>y[i]</em>) / (<em>x[i+1]</em> - <em>x[i]</em>)",
+    "3.     <em>eq</em>: <em>y</em> - <em>y[i]</em> = <em>m</em>*(<em>x</em> - <em>x[i]</em>)",
+    "4. <strong>RETURN</strong> Equations"
+  ],
+  "spline_quadratic": [
+    "<strong>INPUT:</strong> Points (x,y)",
+    "1. Construct system for $3n$ unknowns ($a_i, b_i, c_i$)",
+    "2. Equations: Interpolation (2n), Continuity (n-1), Smoothness (n-1)",
+    "3. Boundary: $a_1 = 0$ (or $S''_1(x_0)=0$)",
+    "4. Solve Linear System",
+    "5. <strong>RETURN</strong> Coefficients"
+  ],
+  "spline_cubic": [
+    "<strong>INPUT:</strong> Points (x,y)",
+    "1. Construct system for $4n$ unknowns or solve for moments $M_i$",
+    "2. Conditions: Interp, Continuity $S, S', S''$",
+    "3. Natural Boundary: $S''(x_0) = 0, S''(x_n) = 0$",
+    "4. Solve Tridiagonal System",
+    "5. <strong>RETURN</strong> Coefficients"
+  ]
 }
