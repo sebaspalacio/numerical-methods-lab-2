@@ -255,7 +255,10 @@
           <label class="block text-sm font-semibold mt-3 mb-1">Vector b</label>
           <input id="bVecInputDirect" class="input" value="1 1 1" />
           
-          <p class="hint mt-3">Hint: The default matrix is symmetric positive-definite, valid for all direct methods.</p>
+          <p class="hint mt-3">
+            <strong>Example A (3x3):</strong> 3 rows, values separated by spaces.<br>
+            <strong>Example b:</strong> A single row of values "1 2 3".
+          </p>
             <div class="flex gap-2 mt-6 pt-4 border-t">
               <button class="btn-run btn btn-primary w-full">Run</button>
               <button class="btn-reset btn btn-soft w-full">Default Inputs</button>
@@ -297,7 +300,9 @@
 
           <label class="block text-sm font-semibold mt-3 mb-1">Vector b</label>
           <input id="bVecInputIter" class="input" value="1 1 1 1" />
-          
+
+          <p class="hint text-xs mb-2">Use space-separated values (e.g., "0 0 0").</p>
+
           <label class="block text-sm font-semibold mt-3 mb-1">Initial Vector x₀</label>
           <input id="x0InputIter" class="input" value="0 0 0 0" />
 
