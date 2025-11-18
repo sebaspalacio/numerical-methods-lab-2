@@ -553,6 +553,7 @@ const METHODS = {
 /* ================= App State ================= */
 let appMode = 'root'; // 'root' | 'direct' | 'iterative' | 'interpolation'
 let ALL_GUIDES = {}; // Almacenará las guías cargadas desde guides.json
+let ALL_PSEUDO = {};
 
 /* ================= General Helpers ================= */
 const setHTML=(el,html)=>el.innerHTML=html;
@@ -1858,9 +1859,46 @@ function renderHistory(){
     }
   });
   // --- 👆 FIN DEL NUEVO BLOQUE JAVASCRIPT ---
+
+  // --- 👇 INICIO DEL NUEVO BLOQUE JAVASCRIPT 👇 ---
+
+  // Control del Modal de Pseudocódigo
+  const pseudoBtn = document.getElementById('pseudoBtn');
+  const closePseudoBtn = document.getElementById('closePseudoBtn');
+  const pseudoModal = document.getElementById('pseudoModal');
+  const pseudoTitle = document.getElementById('pseudoTitle');
+  const pseudoBody = document.getElementById('pseudoBody');
+
+  function showPseudo() {
+    const m = methodSelect.value;
+    const pseudoLines = ALL_PSEUDO[m];
+
+    pseudoTitle.innerText = `${methodSelect.options[methodSelect.selectedIndex].text} - Pseudocode`;
+
+    if (pseudoLines && pseudoLines.length) {
+      pseudoBody.innerHTML = pseudoLines.join('\n');
+    } else {
+      pseudoBody.innerHTML = 'Pseudocode for this method is not yet available.';
+    }
+
+    pseudoModal.classList.remove('hidden');
+    pseudoModal.setAttribute('aria-hidden', 'false');
+  }
+
+  function closePseudo() {
+    pseudoModal.classList.add('hidden');
+    pseudoModal.setAttribute('aria-hidden', 'true');
+  }
+
+  pseudoBtn.addEventListener('click', showPseudo);
+  closePseudoBtn.addEventListener('click', closePseudo);
+  pseudoModal.addEventListener('click', (e) => {
+    if (e.target === pseudoModal) closePseudo();
+  });
+  // --- 👆 FIN DEL NUEVO BLOQUE JAVASCRIPT ---
   historyBtn.addEventListener('click', ()=>toggleHistory(true));
 closeHistBtn.addEventListener('click', ()=>toggleHistory(false));
-clearHistBtn.addEventListener('click', ()=>{ 
+clearHistBtn.addEventListener('click', ()=>{
   // NOTA: Se eliminó window.confirm() porque no es fiable en este entorno.
   // La acción de limpiar el historial ahora es inmediata.
   localStorage.removeItem(HIST_KEY); 
@@ -2531,52 +2569,51 @@ methodSelect.addEventListener('change', syncVisibility);
 
 /* ================= Init ================= */
 function populateAndInit() {
-  // Cargar las guías desde el archivo JSON
-  fetch('guides.json')
-    .then(response => {
-      if (!response.ok) {
-        throw new Error('Network response was not ok');
-      }
-      return response.json();
+  // Cargar ambos archivos JSON en paralelo
+  Promise.all([
+    fetch('guides.json').then(res => {
+      if (!res.ok) throw new Error('guides.json failed to load');
+      return res.json();
+    }),
+    fetch('pseudocode.json').then(res => {
+      if (!res.ok) throw new Error('pseudocode.json failed to load');
+      return res.json();
     })
-    .then(data => {
-      ALL_GUIDES = data; // Almacenar las guías en la variable global
-      
-      // --- 👇 INICIO DEL NUEVO BLOQUE DE LISTENERS 👇 ---
-      // 1. Encontrar TODOS los botones "Run" y asignarles el click
-      document.querySelectorAll('.btn-run').forEach(button => {
-        button.addEventListener('click', () => {
-          clearAllAlerts();
-          if (appMode === 'root') runRoot();
-          else if (appMode === 'direct') runDirect();
-          else if (appMode === 'iterative') runIterative();
-          else if (appMode === 'interpolation') runInterpolation();
-        });
-      });
-      // 2. Encontrar TODOS los botones "Default Inputs" y asignarles el click
-      document.querySelectorAll('.btn-reset').forEach(button => {
-        button.addEventListener('click', resetInputs);
-      });
-      
-      // --- 👆 FIN DEL NUEVO BLOQUE DE LISTENERS ---
-      // Iniciar la app
-      deepLink.classList.add('hidden'); // Hide share link
-      setMode('root'); // Start on the 'Root Finding' tab
-      renderHistory(); // Load history from localStorage
-    })
-    .catch(error => {
-      // Si falla la carga del JSON, mostrar un error en la nueva estructura
-      console.error('Error loading guides.json:', error);
-      const detailsEl = document.getElementById('guideBox');
-      const summaryEl = document.getElementById('guideSummary');
-      const bodyEl = document.getElementById('guideBody');
+  ])
+  .then(([guidesData, pseudoData]) => {
+    ALL_GUIDES = guidesData;
+    ALL_PSEUDO = pseudoData;
 
-      setHTML(summaryEl, 'Error Fatal');
-      setHTML(bodyEl, '<p class="hint">No se pudieron cargar las guías de los métodos (guides.json). La app no puede iniciar.</p>');
-      if (detailsEl) {
-        detailsEl.setAttribute('open', '');
-      }
+    // --- Añadir Listeners de Botones ---
+    document.querySelectorAll('.btn-run').forEach(button => {
+      button.addEventListener('click', () => {
+        clearAllAlerts();
+        if (appMode === 'root') runRoot();
+        else if (appMode === 'direct') runDirect();
+        else if (appMode === 'iterative') runIterative();
+        else if (appMode === 'interpolation') runInterpolation();
+      });
     });
+    document.querySelectorAll('.btn-reset').forEach(button => {
+      button.addEventListener('click', resetInputs);
+    });
+
+    // Iniciar la app
+    deepLink.classList.add('hidden');
+    setMode('root');
+    renderHistory();
+  })
+  .catch(error => {
+    console.error('Error loading JSON files:', error);
+    const detailsEl = document.getElementById('guideBox');
+    const summaryEl = document.getElementById('guideSummary');
+    const bodyEl = document.getElementById('guideBody');
+
+    setHTML(summaryEl, 'Error Fatal');
+    setHTML(bodyEl, `<p class="hint">No se pudieron cargar los archivos de configuración. ${error.message}.</p>`);
+
+    detailsEl.setAttribute('open', '');
+  });
 }
 populateAndInit();
 </script>
