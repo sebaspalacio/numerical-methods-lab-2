@@ -169,7 +169,7 @@
       "**Inputs:** A list of (x, y) data points.",
       "**Goal:** Finds the *single* polynomial $p(x) = a_n x^n + ... + a_0$ that passes through all $n+1$ points.",
       "**Theory:** This method builds a system of $n+1$ linear equations by plugging each point $(x_i, y_i)$ into the polynomial form. This creates the **Vandermonde Matrix** $V$, and solves $Va = y$ for the coefficients $a$.",
-      "**Warning:** This method is **numerically unstable** for a large number of points ($n > 10$). The matrix $V$ becomes ill-conditioned. The PDF explicitly states this method is **\"no recomendable\"** (not recommended)."
+      "**Warning:** This method is **numerically unstable** for a large number of points ($n > 10$). The matrix $V$ becomes ill-conditioned, so results may be inaccurate for high-degree polynomials."
     ]
   },
   "newton_interp": {
