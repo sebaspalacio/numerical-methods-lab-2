@@ -2618,11 +2618,21 @@ function populateAndInit() {
 // --- Añadir Listeners de Botones ---
 document.querySelectorAll('.btn-run').forEach(button => {
   button.addEventListener('click', () => {
-    clearAllAlerts();
-    if (appMode === 'root') runRoot();
-    else if (appMode === 'direct') runDirect();
-    else if (appMode === 'iterative') runIterative();
-    else if (appMode === 'interpolation') runInterpolation();
+    button.textContent = 'Running...';
+    button.disabled = true;
+
+    setTimeout(() => {
+      try {
+        clearAllAlerts();
+        if (appMode === 'root') runRoot();
+        else if (appMode === 'direct') runDirect();
+        else if (appMode === 'iterative') runIterative();
+        else if (appMode === 'interpolation') runInterpolation();
+      } finally {
+        button.textContent = 'Run';
+        button.disabled = false;
+      }
+    }, 10);
   });
 });
 document.querySelectorAll('.btn-reset').forEach(button => {
