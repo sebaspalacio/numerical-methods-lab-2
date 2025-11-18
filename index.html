@@ -2568,6 +2568,7 @@ tabInterpolation.addEventListener('click', () => setMode('interpolation'));
 methodSelect.addEventListener('change', syncVisibility);
 
 /* ================= Init ================= */
+/* REEMPLAZAR 'populateAndInit' COMPLETA */
 function populateAndInit() {
   // Cargar ambos archivos JSON en paralelo
   Promise.all([
@@ -2583,38 +2584,24 @@ function populateAndInit() {
   .then(([guidesData, pseudoData]) => {
     ALL_GUIDES = guidesData;
     ALL_PSEUDO = pseudoData;
-
-    // --- Añadir Listeners de Botones ---
-    document.querySelectorAll('.btn-run').forEach(button => {
-      button.addEventListener('click', () => {
-        clearAllAlerts();
-        if (appMode === 'root') runRoot();
-        else if (appMode === 'direct') runDirect();
-        else if (appMode === 'iterative') runIterative();
-        else if (appMode === 'interpolation') runInterpolation();
-      });
-    });
-    document.querySelectorAll('.btn-reset').forEach(button => {
-      button.addEventListener('click', resetInputs);
-    });
-
-    // Iniciar la app
-    deepLink.classList.add('hidden');
-    setMode('root');
-    renderHistory();
-  })
-  .catch(error => {
-    console.error('Error loading JSON files:', error);
-    const detailsEl = document.getElementById('guideBox');
-    const summaryEl = document.getElementById('guideSummary');
-    const bodyEl = document.getElementById('guideBody');
-
-    setHTML(summaryEl, 'Error Fatal');
-    setHTML(bodyEl, `<p class="hint">No se pudieron cargar los archivos de configuración. ${error.message}.</p>`);
-
-    detailsEl.setAttribute('open', '');
+// --- Añadir Listeners de Botones ---
+document.querySelectorAll('.btn-run').forEach(button => {
+  button.addEventListener('click', () => {
+    clearAllAlerts();
+    if (appMode === 'root') runRoot();
+    else if (appMode === 'direct') runDirect();
+    else if (appMode === 'iterative') runIterative();
+    else if (appMode === 'interpolation') runInterpolation();
   });
-}
+});
+document.querySelectorAll('.btn-reset').forEach(button => {
+  button.addEventListener('click', resetInputs);
+});
+// Iniciar la app
+deepLink.classList.add('hidden');
+setMode('root');
+renderHistory();
+}) .catch(error => { console.error('Error loading JSON files:', error); const detailsEl = document.getElementById('guideBox'); const summaryEl = document.getElementById('guideSummary'); const bodyEl = document.getElementById('guideBody'); setHTML(summaryEl, 'Error Fatal'); setHTML(bodyEl, `<p class="hint">No se pudieron cargar los archivos de configuración. ${error.message}.</p>`); detailsEl.setAttribute('open', ''); }); }
 populateAndInit();
 </script>
 </body>
