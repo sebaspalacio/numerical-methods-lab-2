@@ -116,6 +116,7 @@
               <button id="tabDirect" class="btn btn-soft w-full" aria-pressed="false">Direct Systems</button>
               <button id="tabIterative" class="btn btn-soft w-full" aria-pressed="false">Iterative Systems</button>
               <button id="tabInterpolation" class="btn btn-soft w-full" aria-pressed="false">Interpolation</button>
+              <button id="tabGrapher" class="btn btn-soft w-full" aria-pressed="false">Grapher</button>
             </div>
           </div>
             <div class="flex-grow sm:flex-grow-0 sm:w-64">
@@ -372,6 +373,36 @@
       </div>
     </section>
 
+    <section id="grapherPanel" class="card mb-6 hidden">
+      <div class="grid-2">
+        <div>
+          <h2 class="text-lg font-semibold mb-3">Grapher Tool</h2>
+          <p class="hint mb-4">Visualize any function $f(x)$ quickly.</p>
+          
+          <label class="block text-sm font-semibold mb-1">Function f(x)</label>
+          <input id="gfxInput" class="input mb-3" value="x*sin(x)" placeholder="e.g. x^2 + 3*x" />
+          
+          <div class="grid grid-cols-2 gap-3 mb-4">
+            <div>
+              <label class="block text-sm font-semibold mb-1">Start (a)</label>
+              <input id="gStartInput" type="number" class="input" value="-10"/>
+            </div>
+            <div>
+              <label class="block text-sm font-semibold mb-1">End (b)</label>
+              <input id="gEndInput" type="number" class="input" value="10"/>
+            </div>
+          </div>
+          
+          <button id="gPlotBtn" class="btn btn-primary w-full">Plot Function</button>
+          <div id="gAlerts" class="mt-4 space-y-2"></div>
+        </div>
+        
+        <div>
+          <div id="grapherPlot" class="w-full rounded-xl border border-gray-200" style="height:450px"></div>
+        </div>
+      </div>
+    </section>
+
       <footer class="text-sm text-gray-500 mt-8">
         Numerical Analysis Lab — Implementation based on course files.
       </footer>
@@ -452,7 +483,9 @@ const tabRoot = document.getElementById('tabRoot');
 const tabDirect = document.getElementById('tabDirect');
 const tabIterative = document.getElementById('tabIterative');
 const tabInterpolation = document.getElementById('tabInterpolation');
+const tabGrapher = document.getElementById('tabGrapher');
 const methodSelect = document.getElementById('methodSelect');
+const methodSelectGroup = methodSelect ? methodSelect.parentElement : null;
 const guideBox = document.getElementById('guideBox');
 const deepLink = document.getElementById('deepLink');
 
@@ -461,6 +494,7 @@ const rootPanel = document.getElementById('rootPanel');
 const directSystemPanel = document.getElementById('directSystemPanel');
 const iterativeSystemPanel = document.getElementById('iterativeSystemPanel');
 const interpolationPanel = document.getElementById('interpolationPanel');
+const grapherPanel = document.getElementById('grapherPanel');
 
 // Status Panel
 const statusPanel = document.getElementById('statusPanel');
@@ -525,6 +559,14 @@ const summaryInter = document.getElementById('summaryInter');
 const resultsInter = document.getElementById('resultsInter');
 const plotInter = document.getElementById('plotInter');
 
+// Grapher Refs
+const gfxInput = document.getElementById('gfxInput');
+const gStartInput = document.getElementById('gStartInput');
+const gEndInput = document.getElementById('gEndInput');
+const gPlotBtn = document.getElementById('gPlotBtn');
+const gAlerts = document.getElementById('gAlerts');
+const grapherPlot = document.getElementById('grapherPlot');
+
 // History Refs
 const historyBtn = document.getElementById('historyBtn');
 const historyDrawer = document.getElementById('historyDrawer');
@@ -567,11 +609,12 @@ const METHODS = {
     { value: 'spline_linear', label: 'Linear Splines' },
     { value: 'spline_quadratic', label: 'Quadratic Splines' },
     { value: 'spline_cubic', label: 'Cubic Splines' }
-  ]
+  ],
+  grapher: []
 };
 
 /* ================= App State ================= */
-let appMode = 'root'; // 'root' | 'direct' | 'iterative' | 'interpolation'
+let appMode = 'root'; // 'root' | 'direct' | 'iterative' | 'interpolation' | 'grapher'
 let ALL_GUIDES = {}; // Almacenará las guías cargadas desde guides.json
 let ALL_PSEUDO = {};
 
@@ -586,6 +629,7 @@ function clearAllAlerts() {
     setHTML(alertsDirect, '');
     setHTML(alertsIter, '');
     setHTML(alertsInter, '');
+    setHTML(gAlerts, '');
 }
 
 function clearAllOutputs() {
@@ -608,6 +652,10 @@ function clearAllOutputs() {
   setHTML(summaryInter, '');
   setHTML(resultsInter, '');
   Plotly.purge(plotInter);
+
+  // Limpiar Grapher
+  setHTML(gAlerts, '');
+  Plotly.purge(grapherPlot);
 }
 
 // Get the correct alert box for the current mode
@@ -616,6 +664,7 @@ function getActiveAlertsBox() {
     if (appMode === 'direct') return alertsDirect;
     if (appMode === 'iterative') return alertsIter;
     if (appMode === 'interpolation') return alertsInter;
+    if (appMode === 'grapher') return gAlerts;
     return statusPanel; // Fallback
 }
 
@@ -2423,6 +2472,40 @@ function runInterpolation() {
   }
 }
 
+function runGrapher() {
+    gAlerts.innerHTML = '';
+    try {
+        const expr = gfxInput.value;
+        const fn = buildFn(expr); // Usamos tu helper existente
+        const a = Number(gStartInput.value);
+        const b = Number(gEndInput.value);
+
+        if (isNaN(a) || isNaN(b) || a >= b) throw new Error("Invalid interval [a, b]. Make sure a < b.");
+        // Generar puntos
+        const xs = linspace(a, b, 500);
+        const ys = xs.map(x => {
+            try { return fn(x); } catch { return NaN; }
+        });
+        // Plotear con Plotly
+        const trace = {
+            x: xs, y: ys, type: 'scatter', mode: 'lines', name: 'f(x)',
+            line: { color: '#7c3aed', width: 2 }
+        };
+        
+        const layout = {
+            title: `Graph of: ${expr}`,
+            xaxis: { title: 'x' },
+            yaxis: { title: 'f(x)' },
+            margin: { l: 40, r: 20, t: 40, b: 40 }
+        };
+        
+        Plotly.newPlot('grapherPlot', [trace], layout, { responsive: true });
+        
+    } catch (e) {
+        gAlerts.innerHTML = msgCard('err', 'Plot Error', e.message);
+    }
+}
+
 /* ================= UI Mode & Visibility Control ================= */
 
 // Populates the method dropdown based on the active category
@@ -2474,27 +2557,37 @@ function showGuide() {
 // Main function to switch between app categories (Root, Direct, etc.)
 function setMode(newMode) {
   appMode = newMode;
-  
+  const isGrapher = newMode === 'grapher';
+
   // Toggle panel visibility
   rootPanel.classList.toggle('hidden', newMode !== 'root');
   directSystemPanel.classList.toggle('hidden', newMode !== 'direct');
   iterativeSystemPanel.classList.toggle('hidden', newMode !== 'iterative');
   interpolationPanel.classList.toggle('hidden', newMode !== 'interpolation');
-  
+  grapherPanel.classList.toggle('hidden', !isGrapher);
+
   // Toggle tab button styles
-  const tabs = [tabRoot, tabDirect, tabIterative, tabInterpolation];
-  const modes = ['root', 'direct', 'iterative', 'interpolation'];
-  
+  const tabs = [tabRoot, tabDirect, tabIterative, tabInterpolation, tabGrapher];
+  const modes = ['root', 'direct', 'iterative', 'interpolation', 'grapher'];
+
   tabs.forEach((tab, i) => {
       const isActive = (modes[i] === newMode);
       tab.classList.toggle('btn-primary', isActive);
       tab.classList.toggle('btn-soft', !isActive);
       tab.setAttribute('aria-pressed', isActive);
   });
-  
+
   // Repopulate the method dropdown for the new mode
-  populateMethodsFor(newMode);
-  syncVisibility(); // Ensure correct inputs are shown
+  if (!isGrapher) {
+    if (guideBox && guideBox.parentElement) guideBox.parentElement.classList.remove('hidden');
+    if (methodSelectGroup) methodSelectGroup.classList.remove('hidden');
+    populateMethodsFor(newMode);
+    syncVisibility(); // Ensure correct inputs are shown
+  } else {
+    if (guideBox && guideBox.parentElement) guideBox.parentElement.classList.add('hidden');
+    if (methodSelectGroup) methodSelectGroup.classList.add('hidden');
+    methodSelect.innerHTML = '';
+  }
   clearAllAlerts(); // Clear status when changing modes
   clearAllOutputs();
 }
@@ -2596,6 +2689,7 @@ tabRoot.addEventListener('click', () => setMode('root'));
 tabDirect.addEventListener('click', () => setMode('direct'));
 tabIterative.addEventListener('click', () => setMode('iterative'));
 tabInterpolation.addEventListener('click', () => setMode('interpolation'));
+tabGrapher.addEventListener('click', () => setMode('grapher'));
 methodSelect.addEventListener('change', syncVisibility);
 
 /* ================= Init ================= */
@@ -2638,6 +2732,8 @@ document.querySelectorAll('.btn-run').forEach(button => {
 document.querySelectorAll('.btn-reset').forEach(button => {
   button.addEventListener('click', resetInputs);
 });
+// Listener para el botón Plot
+gPlotBtn.addEventListener('click', runGrapher);
 // Iniciar la app
 deepLink.classList.add('hidden');
 setMode('root');
