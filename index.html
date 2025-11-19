@@ -1,12 +1,14 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="utf-8" />
   <title>Numerical Methods Lab</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <!-- Tailwind -->
   <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Plotly -->
   <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/13.0.3/math.min.js"></script>
   <style>
     :root{
       --c-bg:#fcfbff; --c-card:#ffffff; --c-ink:#18212f; --c-soft:#6b7280;
@@ -20,38 +22,32 @@
     .btn{ border-radius: 14px; padding:.6rem 1rem; font-weight:600; transition: all .15s ease; cursor: pointer; }
     .btn-primary{ background: linear-gradient(90deg,var(--c-primary),var(--c-primary-2)); color:#fff; }
     .btn-primary:hover{ filter: brightness(1.03); box-shadow: 0 4px 10px rgba(0,0,0,.05); }
-    .btn-primary:disabled { opacity: 0.7; cursor: wait; }
     .btn-soft{ background:#f3f4f6; color:#111827; }
     .btn-soft:hover{ background:#e5e7eb; }
     .btn[aria-pressed="true"] { filter: brightness(1.0); box-shadow: 0 2px 5px rgba(0,0,0,.1) inset; }
     .btn[aria-pressed="false"] { filter: brightness(1.0); }
     
     .badge{ display:inline-block; padding:.2rem .6rem; border-radius:999px; font-size:.75rem; font-weight:700;}
-    .ok{ background:#dcfce7; color:#166534; border-color:#86efac; } /* Green */
-    .warn{ background:#fef3c7; color:#92400e; border-color:#fcd34d; } /* Yellow */
-    .err{ background:#fee2e2; color:#991b1b; border-color:#fca5a5; } /* Red */
-    .info{ background:#eef2ff; color:#3730a3; border-color:#c7d2fe; } /* Blue */
-    .recommend{ background:#e0f2fe; color:#075985; border-color:#bae6fd; }
+    .ok{ background:#dcfce7; color:#166534;} /* Green */
+    .warn{ background:#fef3c7; color:#92400e;} /* Yellow */
+    .err{ background:#fee2e2; color:#991b1b;} /* Red */
+    .info{ background:#eef2ff; color:#3730a3;} /* Blue */
+    .recommend{ background:#e0f2fe; color:#075985;}
 
     .input, .select, textarea{ width:100%; border:1px solid #e5e7eb; border-radius:14px; padding:.55rem .8rem; outline:none; transition: all .15s ease;}
     .input:focus, .select:focus, textarea:focus{ box-shadow:0 0 0 3px rgba(124,58,237,.15); border-color:#ddd6fe;}
     .hint{ color:#6b7280; font-size:.9rem;}
-    
-    /* Table Styles (Centered & Fixed) */
     .table{ border-collapse: separate; border-spacing:0; font-variant-numeric: tabular-nums; table-layout:fixed; min-width:640px; margin-left: auto; margin-right: auto; }
     .table th, .table td{ border-bottom:1px solid #e5e7eb; border-right:1px solid #e5e7eb; padding:.6rem .75rem; text-align:center; white-space: nowrap; }
     .table th:first-child, .table td:first-child{ border-left:1px solid #e5e7eb; }
     .table th{ color:#374151; font-weight: 600; background: #f9fafb; }
     .table tr:hover td { background: #fcfbff; }
-    .table-wrapper { overflow-x: auto; }
-    
-    /* Reset .num to be standard table cell */
-    .num{ font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; text-align:right; }
-    
+    .num{ font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; /* Se fueron display:flex, width:100%, etc. */ }
     .code{ font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; background:#f8fafc; padding:.15rem .35rem; border-radius:8px; font-size:.85rem; }
     .matrix-display { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; white-space: pre; background: #f8fafc; padding: 0.75rem; border-radius: 12px; border: 1px solid #e5e7eb; overflow-x: auto; }
-    
-    /* Math Display (Title-like) */
+    /* Hide default disclosure markers */
+    summary { list-style: none; }
+    summary::-webkit-details-marker { display: none; }
     .math-display {
       font-size: 1.25rem;
       font-weight: 500;
@@ -61,10 +57,6 @@
       margin-bottom: 0.75rem;
     }
 
-    /* Hide default disclosure markers */
-    summary { list-style: none; }
-    summary::-webkit-details-marker { display: none; }
-
     .grid-2{ display:grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
     @media (max-width: 1024px){ .grid-2{ grid-template-columns:1fr; } }
 
@@ -72,13 +64,18 @@
     .msg{ border-radius: 14px; border:1px solid; padding:.8rem 1rem; }
     .msg h4{ font-weight:700; margin-bottom:.25rem; }
     .msg p{ margin:.1rem 0; }
+    /* Match border color to text color */
+    .ok{ border-color: #dcfce7; }
+    .warn{ border-color: #fef3c7; }
+    .err{ border-color: #fee2e2; }
+    .info{ border-color: #eef2ff; }
     
     /* History drawer */
     .drawer{ position: fixed; top:0; right:-420px; width:420px; max-width:90vw; height:100vh; background: var(--c-card); border-left:1px solid #e5e7eb; box-shadow:-20px 0 40px rgba(24,33,47,.08); transition:right .25s ease; z-index:50; }
     .drawer.open{ right:0; }
     .drawer-header{ display:flex; align-items:center; justify-content:space-between; gap:.5rem; padding: .6rem .8rem; border-bottom:1px solid #e5e7eb; position: sticky; top:0; background:linear-gradient(180deg,#fff, #fff0); }
   
-    /* Gaussian steps styling */
+    /* Gaussian steps styling (from index (1).txt) */
     .table .pivot { background:#fef3c7; font-weight:700; } /* amber */
     .table .diag  { background:#ecfeff; }                  /* cyan */
   </style>
@@ -89,7 +86,9 @@
         displayMath: [['$$', '$$'], ['\\[', '\\]']],
         processEscapes: true
       },
-      svg: { fontCache: 'global' }
+      svg: {
+        fontCache: 'global'
+      }
     };
   </script>
   <script type="text/javascript" id="MathJax-script" async
@@ -98,76 +97,80 @@
 </head>
 <body class="min-h-screen">
   <div class="max-w-7xl mx-auto p-4 lg:p-8">
-    <header class="mb-6">
-      <div class="flex items-center gap-3">
-        <h1 class="title text-3xl">Numerical Methods Lab</h1>
-        <button id="helpBtn" class="btn btn-soft">User Manual</button>
-      </div>
-      <p class="hint mt-2">A unified lab for Root Finding, Equation Systems, and Interpolation.</p>
-    </header>
-
-    <div class="card mb-6">
-      <div class="flex flex-col gap-4">
-        <div>
-          <label class="block text-sm font-semibold mb-1">Category</label>
-          <div class="flex gap-2">
-            <button id="tabRoot" class="btn btn-primary w-full" aria-pressed="true">Root Finding</button>
-            <button id="tabDirect" class="btn btn-soft w-full" aria-pressed="false">Direct Systems</button>
-            <button id="tabIterative" class="btn btn-soft w-full" aria-pressed="false">Iterative Systems</button>
-            <button id="tabInterpolation" class="btn btn-soft w-full" aria-pressed="false">Interpolation</button>
-            <button id="tabGrapher" class="btn btn-soft w-full" aria-pressed="false">Grapher</button>
-          </div>
+    <!-- Header -->
+      <header class="mb-6">
+        <div class="flex items-center gap-3">
+          <h1 class="title text-3xl">Numerical Methods Lab</h1>
+          <button id="helpBtn" class="btn btn-soft">User Manual</button>
         </div>
+        <p class="hint mt-2">A unified lab for Root Finding, Equation Systems, and Interpolation.</p>
+      </header>
 
-        <div id="methodControls" class="flex justify-end gap-4 items-end">
-          <div class="flex-grow sm:flex-grow-0 sm:w-64">
+    <!-- Category and Method Selection -->
+    <div class="card mb-6">
+        <div class="flex flex-col gap-4">
+  
+          <div>
+            <label class="block text-sm font-semibold mb-1">Category</label>
+            <div class="flex gap-2">
+              <button id="tabRoot" class="btn btn-primary w-full" aria-pressed="true">Root Finding</button>
+              <button id="tabDirect" class="btn btn-soft w-full" aria-pressed="false">Direct Systems</button>
+              <button id="tabIterative" class="btn btn-soft w-full" aria-pressed="false">Iterative Systems</button>
+              <button id="tabInterpolation" class="btn btn-soft w-full" aria-pressed="false">Interpolation</button>
+              <button id="tabGrapher" class="btn btn-soft w-full" aria-pressed="false">Grapher</button>
+            </div>
+          </div>
+            <div class="flex-grow sm:flex-grow-0 sm:w-64">
             <label class="block text-sm font-semibold mb-1">Method</label>
             <select id="methodSelect" class="select"></select>
           </div>
-
-          <div class="flex-shrink-0 sm:w-48">
-            <label class="block text-sm font-semibold mb-1">&nbsp;</label> 
+            <div class="flex-shrink-0 sm:w-48">
+              <label class="block text-sm font-semibold mb-1">&nbsp;</label> 
             <div class="flex gap-2">
               <button id="historyBtn" class="btn btn-soft w-full">History</button>
               <a id="deepLink" class="btn btn-soft w-full hidden" href="#">Share Link</a>
             </div>
           </div>
         </div>
-      </div>
-
       <details id="guideBox" class="mt-4 msg info">
-        <summary id="guideSummary" class="font-semibold cursor-pointer">Method Guide (Click to expand)</summary>
-        <div id="guideBody" class="mt-2">
+        <summary id="guideSummary"><strong>Method Guide</strong> (Click to expand)</summary>
+        <div id="guideBody">
           <p class="hint">Select a method to see its preconditions and tips.</p>
         </div>
       </details>
-      
       <div class="mt-2 text-right">
-          <button id="pseudoBtn" class="btn btn-soft py-1 px-3 text-sm hidden">Show Pseudocode</button>
+        <button id="pseudoBtn" class="btn btn-soft py-1 px-3 text-sm">Show Pseudocode</button>
       </div>
     </div>
+    
+      <!-- HIGH-VISIBILITY STATUS AREA REMOVED: alerts now live inside their panels -->
+
+
+    <!-- PANEL: ROOT FINDING (From Delivery 1) -->
     <section id="rootPanel" class="card mb-6">
       <div class="grid-2">
         <div>
           <h2 class="text-lg font-semibold mb-3">Inputs — Root Finding</h2>
-          
+          <!-- NEW: Defaults from Prueba_metodos.pdf -->
           <label class="block text-sm font-semibold mb-1">Function f(x)</label>
           <input id="fxInput" class="input" value="log(sin(x)**2 + 1) - 0.5" placeholder="Example: x**3 - 7*x + 6" />
-          <p class="hint mb-3">Allowed: numbers, x, +, -, *, /, **, parentheses, and Math functions.</p>
+          <p class="hint mb-3">Allowed: numbers, x, +, -, *, /, **, parentheses, and Math functions (sin, cos, exp, log, sqrt...)</p>
 
           <div id="gxGroup" class="hidden">
             <label class="block text-sm font-semibold mb-1">Function g(x) (for Fixed Point)</label>
             <input id="gxInput" class="input" value="log(sin(x)**2 + 1) - 0.5" placeholder="e.g., (x**3 + 6) / 7" />
-            <p class="hint mb-3">Tip: g(x) must be a contractive mapping.</p>
+            <p class="hint mb-3">Tip: g(x) must be a contractive mapping in your interval.</p>
           </div>
 
           <div id="dfGroup" class="hidden">
-            <label class="block text-sm font-semibold mb-1">Derivative f'(x)</label>
-            <input id="dfInput" class="input" value="exp(x) - 1"/>
+            <label class="block text-sm font-semibold mb-1">Derivative f'(x) (optional)</label>
+            <input id="dfInput" class="input" value="exp(x) - 1" placeholder="Example: 3*x**2 - 7"/>
+            <p class="hint mb-3">If provided, Newton's method will use this analytic derivative.</p>
           </div>
           <div id="d2fGroup" class="hidden">
-            <label class="block text-sm font-semibold mb-1">Second Derivative f''(x)</label>
-            <input id="d2fInput" class="input" value="exp(x)"/>
+            <label class="block text-sm font-semibold mb-1">Second Derivative f''(x) (optional)</label>
+            <input id="d2fInput" class="input" value="exp(x)" placeholder="Example: 6*x"/>
+            <p class="hint mb-3">Required for the Multiple Roots method. (e.g., for h(x) = exp(x)-x-1)</p>
           </div>
 
           <div class="grid grid-cols-2 gap-3">
@@ -180,6 +183,8 @@
               <input id="bInput" type="number" class="input" value="1"/>
             </div>
           </div>
+          <p class="hint mb-3">The interval [a, b] is used for bracketing methods and plotting. Must satisfy a &lt; b.</p>
+
 
           <div id="deltaGroup" class="grid grid-cols-2 gap-3 mt-3 hidden">
             <div>
@@ -205,7 +210,7 @@
 
           <div class="grid grid-cols-2 gap-3 mt-3">
             <div>
-              <label class="block text-sm font-semibold mb-1">Tolerance</label>
+              <label class="block text-sm font-semibold mb-1">Tolerance (Error)</label>
               <input id="tolInput" type="number" class="input" value="1e-7"/>
             </div>
             <div>
@@ -215,13 +220,12 @@
           </div>
 
           <div id="bracketBox" class="mt-3"></div>
-          
-          <div class="flex gap-2 mt-6 pt-4 border-t">
-            <button class="btn-run btn btn-primary w-full">Run</button>
-            <button class="btn-reset btn btn-soft w-full">Default Inputs</button>
+            <div class="flex gap-2 mt-6 pt-4 border-t">
+              <button class="btn-run btn btn-primary w-full">Run</button>
+              <button class="btn-reset btn btn-soft w-full">Default Inputs</button>
+            </div>
+            <div id="alertsBoxRoot" class="space-y-2 mt-4"></div>
           </div>
-          <div id="alertsBoxRoot" class="space-y-2 mt-4"></div>
-        </div>
 
         <div>
           <h2 class="text-lg font-semibold mb-3">Status & Plot</h2>
@@ -239,10 +243,12 @@
       </div>
     </section>
     
+    <!-- PANEL: DIRECT SYSTEMS (From Delivery 2) -->
     <section id="directSystemPanel" class="card mb-6 hidden">
       <div class="grid-2">
         <div>
           <h2 class="text-lg font-semibold mb-3">Inputs — Direct Systems</h2>
+          
           <label class="block text-sm font-semibold mb-1">Matrix A (rows by newline; values by space or comma)</label>
           <textarea id="AInputDirect" class="input" rows="5">4 1 1
 1 3 2
@@ -255,20 +261,21 @@
             <strong>Example A (3x3):</strong> 3 rows, values separated by spaces.<br>
             <strong>Example b:</strong> A single row of values "1 2 3".
           </p>
-          
-          <div class="flex gap-2 mt-6 pt-4 border-t">
-            <button class="btn-run btn btn-primary w-full">Run</button>
-            <button class="btn-reset btn btn-soft w-full">Default Inputs</button>
+            <div class="flex gap-2 mt-6 pt-4 border-t">
+              <button class="btn-run btn btn-primary w-full">Run</button>
+              <button class="btn-reset btn btn-soft w-full">Default Inputs</button>
+            </div>
+            <div id="alertsDirect" class="space-y-2 mt-4"></div>
           </div>
-          <div id="alertsDirect" class="space-y-2 mt-4"></div>
-        </div>
-        
         <div>
           <h2 class="text-lg font-semibold mb-3">Status & Guidance</h2>
           <div id="summaryDirect" class="mb-4"></div>
-          <div id="resultsDirect" class="mt-6 space-y-4">
-            <div id="stepsBox" class="hidden">
-              <h3 class="text-lg font-semibold mb-2">Elimination Steps</h3>
+          <div id="resultsDirect" class="mt-6">
+            <!-- Results (L, U, x) will be inserted here -->
+
+            <!-- NEW: Step viewer for Gaussian methods -->
+            <div id="stepsBox" class="mt-4 hidden">
+              <h3 class="text-lg font-semibold mb-2">Elimination Steps (Augmented Matrix)</h3>
               <div class="flex items-center gap-3 mb-2">
                 <button id="prevStepBtn" class="btn btn-soft">Prev</button>
                 <div id="stepIndicator" class="hint">Step 1 / 1</div>
@@ -281,10 +288,12 @@
       </div>
     </section>
 
+    <!-- PANEL: ITERATIVE SYSTEMS (From Delivery 2) -->
     <section id="iterativeSystemPanel" class="card mb-6 hidden">
       <div class="grid-2">
         <div>
           <h2 class="text-lg font-semibold mb-3">Inputs — Iterative Systems</h2>
+          
           <label class="block text-sm font-semibold mb-1">Matrix A</label>
           <textarea id="AInputIter" class="input" rows="5">4 -1 0 3
 1 15.5 3 8
@@ -293,6 +302,7 @@
 
           <label class="block text-sm font-semibold mt-3 mb-1">Vector b</label>
           <input id="bVecInputIter" class="input" value="1 1 1 1" />
+
           <p class="hint text-xs mb-2">Use space-separated values (e.g., "0 0 0").</p>
 
           <label class="block text-sm font-semibold mt-3 mb-1">Initial Vector x₀</label>
@@ -304,7 +314,7 @@
               <input id="tolInputIter" type="number" class="input" value="1e-7"/>
             </div>
             <div>
-              <label class="block text-sm font-semibold mb-1">Max Iterations</label>
+              <label class="block text-sm font-semibold mb-1">Max Iterations (Nmax)</label>
               <input id="nmaxInputIter" type="number" class="input" value="100"/>
             </div>
             <div id="wGroupIter" class="hidden">
@@ -312,14 +322,12 @@
               <input id="wInputIter" type="number" class="input" value="1.5"/>
             </div>
           </div>
-          
-          <div class="flex gap-2 mt-6 pt-4 border-t">
-            <button class="btn-run btn btn-primary w-full">Run</button>
-            <button class="btn-reset btn btn-soft w-full">Default Inputs</button>
+            <div class="flex gap-2 mt-6 pt-4 border-t">
+              <button class="btn-run btn btn-primary w-full">Run</button>
+              <button class="btn-reset btn btn-soft w-full">Default Inputs</button>
+            </div>
+            <div id="alertsIter" class="space-y-2 mt-4"></div>
           </div>
-          <div id="alertsIter" class="space-y-2 mt-4"></div>
-        </div>
-        
         <div>
           <h2 class="text-lg font-semibold mb-3">Status & Guidance</h2>
           <div id="summaryIter" class="mb-4"></div>
@@ -334,29 +342,34 @@
       </div>
     </section>
 
+    <!-- PANEL: INTERPOLATION (From Delivery 2) -->
     <section id="interpolationPanel" class="card mb-6 hidden">
       <div class="grid-2">
         <div>
           <h2 class="text-lg font-semibold mb-3">Inputs — Interpolation</h2>
+          
           <label class="block text-sm font-semibold mb-1">Data Points (x, y)</label>
+          <!-- NEW: Defaults from Prueba_metodos2.pdf -->
           <textarea id="pointsInput" class="input" rows="8">-1, 15.5
 0, 3
 3, 8
 4, 1</textarea>
-          <p class="hint">One point (x, y) per line.</p>
-          
-          <div class="flex gap-2 mt-6 pt-4 border-t">
-            <button class="btn-run btn btn-primary w-full">Run</button>
-            <button class="btn-reset btn btn-soft w-full">Default Inputs</button>
+          <p class="hint">One point (x, y) per line. Use a comma or space to separate values.</p>
+            <div class="flex gap-2 mt-6 pt-4 border-t">
+              <button class="btn-run btn btn-primary w-full">Run</button>
+              <button class="btn-reset btn btn-soft w-full">Default Inputs</button>
+            </div>
+            <div id="alertsInter" class="space-y-2 mt-4"></div>
           </div>
-          <div id="alertsInter" class="space-y-2 mt-4"></div>
-        </div>
-        
         <div>
           <h2 class="text-lg font-semibold mb-3">Status & Guidance</h2>
           <div id="summaryInter" class="mb-4"></div>
-          <div id="resultsInter" class="space-y-4 mb-4"></div>
-          <div id="plotInter" class="w-full rounded-xl border border-gray-200" style="min-height:420px"></div>
+          <div id="resultsInter" class="space-y-4 mb-4">
+            <!-- Results (polynomial, coefficients, table) will be inserted here -->
+          </div>
+          <div id="plotInter" class="w-full rounded-xl border border-gray-200" style="min-height:420px">
+            <!-- Plot will be rendered here -->
+          </div>
         </div>
       </div>
     </section>
@@ -366,8 +379,10 @@
         <div>
           <h2 class="text-lg font-semibold mb-3">Grapher Tool</h2>
           <p class="hint mb-4">Visualize any function $f(x)$ quickly.</p>
+          
           <label class="block text-sm font-semibold mb-1">Function f(x)</label>
           <input id="gfxInput" class="input mb-3" value="x*sin(x)" placeholder="e.g. x^2 + 3*x" />
+          
           <div class="grid grid-cols-2 gap-3 mb-4">
             <div>
               <label class="block text-sm font-semibold mb-1">Start (a)</label>
@@ -378,68 +393,81 @@
               <input id="gEndInput" type="number" class="input" value="10"/>
             </div>
           </div>
+          
           <button id="gPlotBtn" class="btn btn-primary w-full">Plot Function</button>
           <div id="gAlerts" class="mt-4 space-y-2"></div>
         </div>
+        
         <div>
           <div id="grapherPlot" class="w-full rounded-xl border border-gray-200" style="height:450px"></div>
         </div>
       </div>
     </section>
 
-    <footer class="text-sm text-gray-500 mt-8">
-      Numerical Analysis Lab — Implementation based on course files.
-    </footer>
-  </div>
-
-  <div id="helpModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-start justify-center p-4 z-50 hidden pt-10" aria-hidden="true">
-    <div class="card max-w-2xl w-full">
-      <div class="flex justify-between items-center mb-4">
-        <h2 class="text-xl font-semibold">User Manual</h2>
-        <button id="closeHelpBtn" class="btn btn-primary">Close</button>
-      </div>
-      <div class="space-y-3 hint max-h-[70vh] overflow-y-auto pr-2">
-        <p>Welcome to the Numerical Methods Lab! This app is designed to solve complex math problems interactively.</p>
-        <h4 class="font-semibold text-gray-800">How to Use:</h4>
-        <ol class="list-decimal list-inside space-y-2">
-          <li><strong>Select a Category:</strong> Start by choosing one of the four main categories.</li>
-          <li><strong>Select a Method:</strong> Choose the algorithm you want to run.</li>
-          <li><strong>Check the Guide:</strong> A collapsible guide will appear with theory and conditions.</li>
-          <li><strong>Enter Inputs:</strong> Fill in the required parameters or click "Default Inputs" to load a valid example.</li>
-          <li><strong>Run:</strong> Click "Run" to execute.</li>
-        </ol>
-        <h4 class="font-semibold text-gray-800 mt-4">Method & Theory Details:</h4>
-        <ul class="list-disc list-inside space-y-2 text-sm">
-          <li>
-            <strong>Error & Tolerance:</strong>
-            <ul class="list-disc list-inside ml-4 text-gray-600">
-              <li>Root Finding: Absolute error $|x_{new} - x_{old}|$.</li>
-              <li>Systems: Euclidean Norm $||x^{(k)} - x^{(k-1)}||_2$.</li>
-            </ul>
-          </li>
-          <li>
-            <strong>Automatic Validations:</strong> Checks for sign changes ($f(a)f(b) < 0$), zero diagonals, singular matrices, and spectral radius $\rho(T) \ge 1$.
-          </li>
-        </ul>
-      </div>
-      <div class="mt-4 pt-3 border-t flex items-center">
-        <input id="dontShowHelp" type="checkbox" class="mr-2 h-4 w-4">
-        <label for="dontShowHelp" class="text-sm text-gray-600">Don't show this automatically next time</label>
-      </div>
+      <footer class="text-sm text-gray-500 mt-8">
+        Numerical Analysis Lab — Implementation based on course files.
+      </footer>
     </div>
+
+      <div id="helpModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-start justify-center p-4 z-50 hidden pt-10" aria-hidden="true">
+        <div class="card max-w-2xl w-full">
+          <div class="flex justify-between items-center mb-4">
+            <h2 class="text-xl font-semibold">User Manual</h2>
+            <button id="closeHelpBtn" class="btn btn-primary">Close</button>
+          </div>
+          <div class="space-y-3 hint max-h-[70vh] overflow-y-auto pr-2">
+            <p>Welcome to the Numerical Methods Lab! This app is designed to solve complex math problems interactively.</p>
+
+            <h4 class="font-semibold text-gray-800">How to Use:</h4>
+            <ol class="list-decimal list-inside space-y-2">
+              <li><strong>Select a Category:</strong> Start by choosing one of the four main categories at the top (e.g., "Root Finding", "Direct Systems").</li>
+              <li><strong>Select a Method:</strong> The "Method" dropdown will update. Choose the specific algorithm you want to run (e.g., "Bisection", "Cholesky").</li>
+              <li><strong>Check the Guide:</strong> A collapsible guide will appear. Click it to see the theory, theorems, and convergence conditions for the selected method.</li>
+              <li><strong>Enter Inputs:</strong> Fill in the required inputs (functions, matrices, or points) in the left-hand column. You can also click "Default Inputs" to load a valid example.</li>
+              <li><strong>Run:</strong> Click the "Run" button at the bottom of the input column.</li>
+              <li><strong>Analyze Results:</strong> The output (status messages, plots, and iteration tables) will appear on the right and bottom.</li>
+            </ol>
+
+            <h4 class="font-semibold text-gray-800 mt-4">Method & Theory Details:</h4>
+            <ul class="list-disc list-inside space-y-2 text-sm">
+              <li>
+                <strong>Error & Tolerance:</strong>
+                <ul class="list-disc list-inside ml-4 text-gray-600">
+                  <li>For <strong>Root Finding</strong>, we use absolute error: $|x_{new} - x_{old}|$.</li>
+                  <li>For <strong>Systems</strong>, we use the Euclidean Norm (Norm 2): $||x^{(k)} - x^{(k-1)}||_2$.</li>
+                </ul>
+              </li>
+              <li>
+                <strong>Automatic Validations:</strong> The app checks theorems before running:
+                <ul class="list-disc list-inside ml-4 text-gray-600">
+                  <li><strong>Roots:</strong> Checks for sign change ($f(a)f(b) < 0$) in bracketing methods.</li>
+                  <li><strong>Iterative:</strong> Checks for zero diagonals and warns if Spectral Radius $\rho(T) \ge 1$.</li>
+                  <li><strong>Direct:</strong> Detects singular matrices and zero pivots.</li>
+                </ul>
+              </li>
+            </ul>
+          <div class="mt-4 pt-3 border-t flex items-center">
+            <input id="dontShowHelp" type="checkbox" class="mr-2 h-4 w-4">
+            <label for="dontShowHelp" class="text-sm text-gray-600">Don't show this automatically next time</label>
+          </div>
+        </div>
+      </div>
   </div>
 
   <div id="pseudoModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-start justify-center p-4 z-50 hidden pt-10" aria-hidden="true">
-    <div class="card max-w-3xl w-full max-h-[80vh] flex flex-col">
-      <div class="flex justify-between items-center mb-4 border-b pb-2">
-        <h2 id="pseudoTitle" class="text-xl font-semibold">Method Pseudocode</h2>
+    <div class="card max-w-2xl w-full">
+      <div class="flex justify-between items-center mb-4">
+        <h2 id="pseudoTitle" class="text-xl font-semibold">Pseudocode</h2>
         <button id="closePseudoBtn" class="btn btn-primary">Close</button>
       </div>
-      <div id="pseudoBody" class="code overflow-y-auto flex-grow p-4 text-sm leading-relaxed bg-slate-50 rounded-lg border"></div>
+      <div id="pseudoBody" class="code max-h-[70vh] overflow-y-auto" style="background: #fdfdfd; padding: 1rem; white-space: pre-wrap; line-height: 1.6;">
+        Select a method to see its pseudocode.
+      </div>
     </div>
   </div>
 
-  <aside id="historyDrawer" class="drawer" aria-hidden="true">
+    <!-- History Drawer -->
+    <aside id="historyDrawer" class="drawer" aria-hidden="true">
     <div class="drawer-header">
       <h3 class="text-lg font-semibold">Recent Runs</h3>
       <div class="flex gap-2">
@@ -449,27 +477,126 @@
     </div>
     <div id="historyList" class="p-3 space-y-3 overflow-auto" style="height: calc(100vh - 64px);"></div>
   </aside>
-  <script>
-/* ================= CONFIGURATION ================= */
+
+<script>
+/* ================= UI Grab: All Panels ================= */
+const tabRoot = document.getElementById('tabRoot');
+const tabDirect = document.getElementById('tabDirect');
+const tabIterative = document.getElementById('tabIterative');
+const tabInterpolation = document.getElementById('tabInterpolation');
+const tabGrapher = document.getElementById('tabGrapher');
+const methodSelect = document.getElementById('methodSelect');
+const methodSelectGroup = methodSelect ? methodSelect.parentElement : null;
+const guideBox = document.getElementById('guideBox');
+const deepLink = document.getElementById('deepLink');
+
+// All Panels
+const rootPanel = document.getElementById('rootPanel');
+const directSystemPanel = document.getElementById('directSystemPanel');
+const iterativeSystemPanel = document.getElementById('iterativeSystemPanel');
+const interpolationPanel = document.getElementById('interpolationPanel');
+const grapherPanel = document.getElementById('grapherPanel');
+
+// Status Panel
+const statusPanel = document.getElementById('statusPanel');
+const alertsBoxRoot = document.getElementById('alertsBoxRoot');
+const alertsDirect = document.getElementById('alertsDirect');
+const alertsIter = document.getElementById('alertsIter');
+const alertsInter = document.getElementById('alertsInter');
+
+// Root Finding Refs
+const fxInput = document.getElementById('fxInput');
+const gxGroup = document.getElementById('gxGroup');
+const gxInput = document.getElementById('gxInput');
+const aInput = document.getElementById('aInput');
+const bInput = document.getElementById('bInput');
+const deltaGroup = document.getElementById('deltaGroup');
+const deltaInput = document.getElementById('deltaInput');
+const nmaxInput = document.getElementById('nmaxInput');
+const x0Input = document.getElementById('x0Input');
+const x1Input = document.getElementById('x1Input');
+const x1Col = document.getElementById('x1Col');
+const tolInput = document.getElementById('tolInput');
+const kmaxInput = document.getElementById('kmaxInput');
+const summaryBoxRoot = document.getElementById('summaryBoxRoot');
+const plotDiv = document.getElementById('plot');
+const iterTableRoot = document.getElementById('iterTableRoot');
+const tableBoxRoot = document.getElementById('tableBoxRoot');
+const bracketBox = document.getElementById('bracketBox');
+const dfInput = document.getElementById('dfInput');
+const d2fInput = document.getElementById('d2fInput');
+const dfGroup = document.getElementById('dfGroup');
+const d2fGroup = document.getElementById('d2fGroup');
+
+// Direct Systems Refs
+const AInputDirect = document.getElementById('AInputDirect');
+const bVecInputDirect = document.getElementById('bVecInputDirect');
+const summaryDirect = document.getElementById('summaryDirect');
+const resultsDirect = document.getElementById('resultsDirect');
+// NEW: Step viewer refs
+const stepsBox = document.getElementById('stepsBox');
+const stepMatrix = document.getElementById('stepMatrix');
+const stepIndicator = document.getElementById('stepIndicator');
+const prevStepBtn = document.getElementById('prevStepBtn');
+const nextStepBtn = document.getElementById('nextStepBtn');
+
+
+// Iterative Systems Refs
+const AInputIter = document.getElementById('AInputIter');
+const bVecInputIter = document.getElementById('bVecInputIter');
+const x0InputIter = document.getElementById('x0InputIter');
+const tolInputIter = document.getElementById('tolInputIter');
+const nmaxInputIter = document.getElementById('nmaxInputIter');
+const wGroupIter = document.getElementById('wGroupIter');
+const wInputIter = document.getElementById('wInputIter');
+const summaryIter = document.getElementById('summaryIter');
+const spectralRadiusBox = document.getElementById('spectralRadiusBox');
+const iterTableIterative = document.getElementById('iterTableIterative');
+const tableBoxIter = document.getElementById('tableBoxIter');
+
+// Interpolation Refs
+const pointsInput = document.getElementById('pointsInput');
+const summaryInter = document.getElementById('summaryInter');
+const resultsInter = document.getElementById('resultsInter');
+const plotInter = document.getElementById('plotInter');
+
+// Grapher Refs
+const gfxInput = document.getElementById('gfxInput');
+const gStartInput = document.getElementById('gStartInput');
+const gEndInput = document.getElementById('gEndInput');
+const gPlotBtn = document.getElementById('gPlotBtn');
+const gAlerts = document.getElementById('gAlerts');
+const grapherPlot = document.getElementById('grapherPlot');
+
+// History Refs
+const historyBtn = document.getElementById('historyBtn');
+const historyDrawer = document.getElementById('historyDrawer');
+const historyList = document.getElementById('historyList');
+const closeHistBtn = document.getElementById('closeHistBtn');
+const clearHistBtn = document.getElementById('clearHistBtn');
+
+
+/* ================= Method catalogs ================= */
 const METHODS = {
   root: [
-    { value: 'incremental', label: 'Incremental Search' },
-    { value: 'bisection', label: 'Bisection' },
+    { value: 'incremental',   label: 'Incremental Search' },
+    { value: 'bisection',     label: 'Bisection' },
     { value: 'falsePosition', label: 'False Position' },
-    { value: 'fixedPoint', label: 'Fixed Point' },
-    { value: 'newton_root', label: 'Newton-Raphson' },
-    { value: 'secant', label: 'Secant' },
-    { value: 'multiple', label: 'Multiple Roots' },
+    { value: 'fixedPoint',    label: 'Fixed Point' },
+    { value: 'newton_root',        label: 'Newton-Raphson' },
+    { value: 'secant',        label: 'Secant' },
+    { value: 'multiple',      label: 'Multiple Roots (Mod. Newton)' },
   ],
+  // NEW: Added Gaussian methods and renamed LU methods
   direct: [
-    { value: 'gauss_simple', label: 'Gaussian Elimination (Simple)' },
-    { value: 'gauss_partial', label: 'Gaussian Elimination (Partial Pivot)' },
-    { value: 'gauss_total', label: 'Gaussian Elimination (Total Pivot)' },
-    { value: 'lu_gaussian', label: 'LU Factorization (Simple)' },
+    { value: 'gauss_simple',     label: 'Gaussian Elimination (Simple)' },
+    { value: 'gauss_partial',    label: 'Gaussian Elimination (Partial Pivot)' },
+    { value: 'gauss_total',      label: 'Gaussian Elimination (Total Pivot)' },
+    { value: 'lu_gaussian',      label: 'LU Factorization (Simple)' },
     { value: 'lu_partial_pivot', label: 'LU Factorization (Partial Pivot)' },
-    { value: 'doolittle', label: 'Doolittle (LU)' },
-    { value: 'crout', label: 'Crout (LU)' },
-    { value: 'cholesky', label: 'Cholesky (LLT)' }
+    { value: 'doolittle',        label: 'Doolittle (LU)' },
+    { value: 'crout',            label: 'Crout (LU)' },
+    { value: 'cholesky',         label: 'Cholesky (LLT)' }
   ],
   iterative: [
     { value: 'jacobi', label: 'Jacobi' },
@@ -487,130 +614,436 @@ const METHODS = {
   grapher: []
 };
 
-let appMode = 'root';
-let ALL_GUIDES = {};
+/* ================= App State ================= */
+let appMode = 'root'; // 'root' | 'direct' | 'iterative' | 'interpolation' | 'grapher'
+let ALL_GUIDES = {}; // Almacenará las guías cargadas desde guides.json
 let ALL_PSEUDO = {};
 
-/* ================= DOM ELEMENTS ================= */
-const tabRoot = document.getElementById('tabRoot');
-const tabDirect = document.getElementById('tabDirect');
-const tabIterative = document.getElementById('tabIterative');
-const tabInterpolation = document.getElementById('tabInterpolation');
-const tabGrapher = document.getElementById('tabGrapher');
-const methodControls = document.getElementById('methodControls');
-const methodSelect = document.getElementById('methodSelect');
-const guideBox = document.getElementById('guideBox');
-const guideSummary = document.getElementById('guideSummary');
-const guideBody = document.getElementById('guideBody');
-
-// Panels
-const rootPanel = document.getElementById('rootPanel');
-const directSystemPanel = document.getElementById('directSystemPanel');
-const iterativeSystemPanel = document.getElementById('iterativeSystemPanel');
-const interpolationPanel = document.getElementById('interpolationPanel');
-const grapherPanel = document.getElementById('grapherPanel');
-
-// Alerts
-const alertsBoxRoot = document.getElementById('alertsBoxRoot');
-const alertsDirect = document.getElementById('alertsDirect');
-const alertsIter = document.getElementById('alertsIter');
-const alertsInter = document.getElementById('alertsInter');
-const gAlerts = document.getElementById('gAlerts');
-
-// Inputs & Outputs
-const fxInput = document.getElementById('fxInput'), gxInput = document.getElementById('gxInput'), aInput = document.getElementById('aInput'), bInput = document.getElementById('bInput');
-const x0Input = document.getElementById('x0Input'), x1Input = document.getElementById('x1Input'), tolInput = document.getElementById('tolInput'), kmaxInput = document.getElementById('kmaxInput');
-const dfInput = document.getElementById('dfInput'), d2fInput = document.getElementById('d2fInput'), deltaInput = document.getElementById('deltaInput'), nmaxInput = document.getElementById('nmaxInput');
-const AInputDirect = document.getElementById('AInputDirect'), bVecInputDirect = document.getElementById('bVecInputDirect');
-const AInputIter = document.getElementById('AInputIter'), bVecInputIter = document.getElementById('bVecInputIter'), x0InputIter = document.getElementById('x0InputIter'), tolInputIter = document.getElementById('tolInputIter'), nmaxInputIter = document.getElementById('nmaxInputIter'), wInputIter = document.getElementById('wInputIter');
-const pointsInput = document.getElementById('pointsInput');
-const gfxInput = document.getElementById('gfxInput'), gStartInput = document.getElementById('gStartInput'), gEndInput = document.getElementById('gEndInput'), gPlotBtn = document.getElementById('gPlotBtn');
-
-// Result Divs
-const summaryBoxRoot = document.getElementById('summaryBoxRoot'), iterTableRoot = document.getElementById('iterTableRoot'), tableBoxRoot = document.getElementById('tableBoxRoot'), bracketBox = document.getElementById('bracketBox');
-const summaryDirect = document.getElementById('summaryDirect'), resultsDirect = document.getElementById('resultsDirect'), stepsBox = document.getElementById('stepsBox'), stepMatrix = document.getElementById('stepMatrix');
-const summaryIter = document.getElementById('summaryIter'), spectralRadiusBox = document.getElementById('spectralRadiusBox'), iterTableIterative = document.getElementById('iterTableIterative');
-const summaryInter = document.getElementById('summaryInter'), resultsInter = document.getElementById('resultsInter'), plotInter = document.getElementById('plotInter'), grapherPlot = document.getElementById('grapherPlot');
-
-// Groups
-const gxGroup=document.getElementById('gxGroup'), dfGroup=document.getElementById('dfGroup'), d2fGroup=document.getElementById('d2fGroup'), deltaGroup=document.getElementById('deltaGroup'), x1Col=document.getElementById('x1Col'), wGroupIter=document.getElementById('wGroupIter');
-
-/* ================= HELPERS ================= */
+/* ================= General Helpers ================= */
 const setHTML=(el,html)=>el.innerHTML=html;
 const appendHTML=(el,html)=>el.insertAdjacentHTML('beforeend',html);
 const esc = (s)=>String(s).replace(/[&<>]/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));
-function clearAllAlerts() { setHTML(alertsBoxRoot,''); setHTML(alertsDirect,''); setHTML(alertsIter,''); setHTML(alertsInter,''); setHTML(gAlerts,''); }
+
+// Clear all high-level status alerts
+function clearAllAlerts() {
+    setHTML(alertsBoxRoot, '');
+    setHTML(alertsDirect, '');
+    setHTML(alertsIter, '');
+    setHTML(alertsInter, '');
+    setHTML(gAlerts, '');
+}
+
 function clearAllOutputs() {
-  setHTML(summaryBoxRoot, ''); setHTML(iterTableRoot, ''); Plotly.purge('plot');
-  setHTML(summaryDirect, ''); setHTML(resultsDirect, ''); stepsBox.classList.add('hidden');
-  setHTML(summaryIter, ''); setHTML(spectralRadiusBox, ''); setHTML(iterTableIterative, '');
-  setHTML(summaryInter, ''); setHTML(resultsInter, ''); Plotly.purge('plotInter');
-  Plotly.purge('grapherPlot');
+  // Limpiar Root Finding
+  setHTML(summaryBoxRoot, '');
+  setHTML(iterTableRoot, '');
+  Plotly.purge(plotDiv);
+
+  // Limpiar Direct Systems
+  setHTML(summaryDirect, '');
+  setHTML(resultsDirect, '');
+  stepsBox.classList.add('hidden');
+
+  // Limpiar Iterative Systems
+  setHTML(summaryIter, '');
+  setHTML(spectralRadiusBox, '');
+  setHTML(iterTableIterative, '');
+
+  // Limpiar Interpolation
+  setHTML(summaryInter, '');
+  setHTML(resultsInter, '');
+  Plotly.purge(plotInter);
+
+  // Limpiar Grapher
+  setHTML(gAlerts, '');
+  Plotly.purge(grapherPlot);
 }
-function getActiveAlertsBox() { 
-  if(appMode==='root') return alertsBoxRoot; 
-  if(appMode==='direct') return alertsDirect; 
-  if(appMode==='iterative') return alertsIter; 
-  if(appMode==='interpolation') return alertsInter; 
-  return gAlerts; 
+
+// Get the correct alert box for the current mode
+function getActiveAlertsBox() {
+    if (appMode === 'root') return alertsBoxRoot;
+    if (appMode === 'direct') return alertsDirect;
+    if (appMode === 'iterative') return alertsIter;
+    if (appMode === 'interpolation') return alertsInter;
+    if (appMode === 'grapher') return gAlerts;
+    return statusPanel; // Fallback
 }
+
+// Message card builder
 function msgCard(type, title, lines){
-  const klass = type==='err'?'err':(type==='ok'?'ok':(type==='warn'?'warn':'info'));
-  let body = Array.isArray(lines)?lines.join('<br>'):lines;
-  body = body.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-  return `<div class="msg ${klass}"><h4>${title}</h4><p class="hint">${body}</p></div>`;
+  const klass = (type === 'err' || type === 'error') ? 'err' :
+                (type === 'success' || type === 'ok') ? 'ok' :
+                (type === 'warn') ? 'warn' :
+                (type === 'info') ? 'info' :
+                (type === 'recommend') ? 'recommend' : 'warn'; // Default to warn
+  
+  // Unir todas las líneas en un solo string, separado por saltos de línea
+  let bodyString = Array.isArray(lines) ? lines.join('<br>') : lines;
+  
+  // Convertir **bold** a <strong>bold</strong>
+  // (Esto no interfiere con MathJax, que se procesa después)
+  bodyString = bodyString.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+  
+  const body = `<p class="hint">${bodyString}</p>`;
+  
+  return `<div class="msg ${klass}"><h4>${title}</h4>${body}</div>`;
 }
+
+// Matrix/Vector parsing
+function parseMatrix(text) {
+  const rows = String(text).trim().split(/\n+/).map(line =>
+    line.trim().split(/[\s,]+/).filter(Boolean).map(v => {
+      const n = Number(v);
+      if (!Number.isFinite(n)) throw new Error(`Non-numeric value in A: "${v}"`);
+      return n;
+    })
+  );
+  const n = rows.length;
+  if (n === 0) throw new Error('Matrix A is empty.');
+  if (!rows.every(r => r.length === n)) throw new Error("A must be a square (n x n) matrix.");
+  return rows;
+}
+function parseVector(text, n_expected = null) {
+  const arr = String(text).trim().split(/[\s,]+/).filter(Boolean).map(v => {
+    const n = Number(v);
+    if (!Number.isFinite(n)) throw new Error(`Non-numeric value in vector: "${v}"`);
+    return n;
+  });
+  if (arr.length === 0 && n_expected > 0) throw new Error(`Vector is empty. Expected ${n_expected} elements.`);
+  if (n_expected !== null && arr.length !== n_expected) {
+    throw new Error(`Vector must have ${n_expected} elements, but found ${arr.length}.`);
+  }
+  return arr;
+}
+function parsePoints(text) {
+    const points = String(text).trim().split(/\n+/).map(line =>
+        line.trim().split(/[\s,]+/).filter(Boolean).map(Number)
+    );
+    if (points.some(p => p.length !== 2 || !Number.isFinite(p[0]) || !Number.isFinite(p[1]))) {
+        throw new Error('Invalid points format. Use "x, y" or "x y" on each line.');
+    }
+    const x = points.map(p => p[0]);
+    const y = points.map(p => p[1]);
+    return { x, y };
+}
+
+function polyToString(coeffs = []) {
+  if (!Array.isArray(coeffs) || coeffs.length === 0) return '0';
+  const n = coeffs.length;
+  let str = '';
+  coeffs.forEach((coef, idx) => {
+    if (Math.abs(coef) < 1e-12) return;
+    const power = n - 1 - idx;
+    const sign = coef >= 0 ? '+' : '-';
+    const absVal = Math.abs(coef).toFixed(6);
+    let term = absVal;
+    if (power > 0) {
+      term += 'x' + (power > 1 ? `^${power}` : '');
+    }
+    if (!str) {
+      str = sign === '-' ? `-${term}` : term;
+    } else {
+      str += ` ${sign} ${term}`;
+    }
+  });
+  return str || '0';
+}
+
+// Matrix formatting and linear algebra helpers
+function zeros(n, m = null) {
+  if (m === null) m = n;
+  return Array.from({ length: n }, () => Array(m).fill(0.0));
+}
+function identity(n) {
+  const I = zeros(n, n);
+  for (let i = 0; i < n; i++) I[i][i] = 1.0;
+  return I;
+}
+function deepCopy(v) {
+  return JSON.parse(JSON.stringify(v));
+}
+function formatNum(v, prec = 6) {
+  if (typeof v === 'object' && v !== null && 're' in v) { // Complex object
+    const re = v.re.toFixed(prec);
+    const im = v.im.toFixed(prec);
+    if (Math.abs(v.im) < 1e-12) return re.padStart(10);
+    return `${re}${v.im >= 0 ? '+' : '-'}${Math.abs(v.im).toFixed(prec)}i`.padStart(10);
+  }
+  return Number(v).toFixed(prec).padStart(10);
+}
+function matrixToHTML(M, title = "") {
+  let html = title ? `<h4>${title}</h4>` : '';
+  html += '<div class="matrix-display">';
+  html += M.map(row => 
+    " " + row.map(v => formatNum(v, 4)).join(" ")
+  ).join("\n");
+  html += '</div>';
+  return html;
+}
+function vectorToHTML(v, title = "") {
+    let html = title ? `<h4>${title}</h4>` : '';
+    html += '<div class="matrix-display">';
+    html += " " + v.map(val => formatNum(val, 6)).join("\n ");
+    html += '</div>';
+    return html;
+}
+function forwardSubstitution(L, b) {
+  const n = L.length;
+  const y = Array(n).fill(0.0);
+  for (let i = 0; i < n; i++) {
+    let s = b[i];
+    for (let j = 0; j < i; j++) {
+      s -= L[i][j] * y[j];
+    }
+    if (Math.abs(L[i][i]) < 1e-14) throw new Error("Singular Matrix: Zero pivot in forward substitution.");
+    y[i] = s / L[i][i];
+  }
+  return y;
+}
+function backwardSubstitution(U, y) {
+  const n = U.length;
+  const x = Array(n).fill(0.0);
+  for (let i = n - 1; i >= 0; i--) {
+    let s = y[i];
+    for (let j = i + 1; j < n; j++) {
+      s -= U[i][j] * x[j];
+    }
+    if (Math.abs(U[i][i]) < 1e-14) throw new Error("Singular Matrix: Zero pivot in backward substitution.");
+    x[i] = s / U[i][i];
+  }
+  return x;
+}
+function complexForwardSubstitution(L, b) {
+  const n = L.length;
+  const y = Array(n).fill(0.0).map(Complex.fromReal);
+  for (let i = 0; i < n; i++) {
+    let s = b[i];
+    for (let j = 0; j < i; j++) {
+      const prod = Complex.mul(L[i][j], y[j]);
+      s = Complex.sub(s, prod);
+    }
+    const den = L[i][i];
+    if (Complex.abs(den) < 1e-14) throw new Error("Singular Matrix: Zero pivot in complex forward substitution.");
+    y[i] = Complex.div(s, den);
+  }
+  return y;
+}
+
+function complexBackwardSubstitution(U, y) {
+  const n = U.length;
+  const x = Array(n).fill(0.0).map(Complex.fromReal);
+  for (let i = n - 1; i >= 0; i--) {
+    let s = y[i];
+    for (let j = i + 1; j < n; j++) {
+      const prod = Complex.mul(U[i][j], x[j]);
+      s = Complex.sub(s, prod);
+    }
+    const den = U[i][i];
+    if (Complex.abs(den) < 1e-14) throw new Error("Singular Matrix: Zero pivot in complex backward substitution.");
+    x[i] = Complex.div(s, den);
+  }
+  return x;
+}
+
+function applyPermutation(P, b) {
+    const n = P.length;
+    const out = Array(n).fill(0.0);
+    for (let i = 0; i < n; i++) {
+        const j = P[i].indexOf(1.0); // Find the '1' in row i
+        out[i] = b[j];
+    }
+    return out;
+}
+function matVec(A, x) {
+    return A.map(row => row.reduce((sum, val, j) => sum + val * x[j], 0));
+}
+function vecSub(a, b) {
+    return a.map((val, i) => val - b[i]);
+}
+function vecNorm2(x) {
+    return Math.sqrt(x.reduce((sum, val) => sum + val * val, 0));
+}
+function invLowerTriangular(M) {
+    const n = M.length;
+    const X = zeros(n, n);
+    for (let i = 0; i < n; i++) {
+        if (Math.abs(M[i][i]) < 1e-14) throw new Error("Singular matrix in invLowerTriangular.");
+        X[i][i] = 1.0 / M[i][i];
+        for (let j = 0; j < i; j++) {
+            let s = 0;
+            for (let k = j; k < i; k++) {
+                s += M[i][k] * X[k][j];
+            }
+            X[i][j] = -s / M[i][i];
+        }
+    }
+    return X;
+}
+function matMul(A, B) {
+    const n = A.length, m = A[0].length, p = B[0].length;
+    const C = zeros(n, p);
+    for (let i = 0; i < n; i++) {
+        for (let k = 0; k < m; k++) {
+            const aik = A[i][k];
+            if (aik === 0.0) continue;
+            for (let j = 0; j < p; j++) {
+                C[i][j] += aik * B[k][j];
+            }
+        }
+    }
+    return C;
+}
+function spectralRadius(A, iters = 100) {
+    try {
+        const n = A.length;
+        let v = Array(n).fill(1.0);
+        for (let i = 0; i < iters; i++) {
+            const w = matVec(A, v);
+            const nw = vecNorm2(w);
+            if (nw === 0.0) return 0.0;
+            v = w.map(wi => wi / nw);
+        }
+        const w = matVec(A, v);
+        const num = w.reduce((sum, wi, i) => sum + wi * v[i], 0);
+        const den = v.reduce((sum, vi) => sum + vi * vi, 0);
+        return Math.abs(den !== 0 ? num / den : 0.0);
+    } catch (e) {
+        return NaN; // Fail silently if matrix not square, etc.
+    }
+}
+function gaussianSolve(A_in, b_in) {
+    const A = deepCopy(A_in);
+    const b = [...b_in];
+    const n = A.length;
+    for (let k = 0; k < n - 1; k++) {
+        // Partial Pivoting
+        let p = k;
+        for (let i = k + 1; i < n; i++) {
+            if (Math.abs(A[i][k]) > Math.abs(A[p][k])) p = i;
+        }
+        if (Math.abs(A[p][k]) < 1e-14) throw new Error("Singular matrix in gaussianSolve.");
+        if (p !== k) {
+            [A[k], A[p]] = [A[p], A[k]];
+            [b[k], b[p]] = [b[p], b[k]];
+        }
+        // Elimination
+        for (let i = k + 1; i < n; i++) {
+            const m = A[i][k] / A[k][k];
+            for (let j = k; j < n; j++) {
+                A[i][j] -= m * A[k][j];
+            }
+            b[i] -= m * b[k];
+        }
+    }
+    return backwardSubstitution(A, b);
+}
+
+// Simple complex object for Cholesky
+const Complex = {
+  add: (a, b) => ({ re: a.re + b.re, im: a.im + b.im }),
+  sub: (a, b) => ({ re: a.re - b.re, im: a.im - b.im }),
+  mul: (a, b) => ({ re: a.re * b.re - a.im * b.im, im: a.re * b.im + a.im * b.re }),
+  div: (a, b) => {
+    const den = b.re * b.re + b.im * b.im;
+    if (den === 0) return { re: NaN, im: NaN };
+    return {
+      re: (a.re * b.re + a.im * b.im) / den,
+      im: (a.im * b.re - a.re * b.im) / den
+    };
+  },
+  sqrt: (a) => {
+    const r = Math.sqrt(Math.sqrt(a.re * a.re + a.im * a.im));
+    const theta = Math.atan2(a.im, a.re) / 2;
+    return { re: r * Math.cos(theta), im: r * Math.sin(theta) };
+  },
+  fromReal: (r) => ({ re: Number(r), im: 0.0 }),
+  abs: (a) => Math.sqrt(a.re * a.re + a.im * a.im)
+};
+
+/* ================= Root Finding: Helpers & Validation (UI-side) ================= */
 function normalizeExpr(s){ return String(s).replace(/\^/g,'**'); }
 function buildFn(expr){ const src=normalizeExpr(expr); return new Function('x',`with(Math){return (${src});}`); }
-function fmt(v, p=6, m='fixed'){ 
-  const x=Number(v); 
-  if(!Number.isFinite(x)) return 'NaN';
-  if(m==='sci') return x.toExponential(p);
-  return x.toFixed(p); 
+function maybeBuildFn(expr){ const s=String(expr||'').trim(); return s ? buildFn(s) : null; }
+function fmt(v, places=6, mode='fixed'){ 
+    const x=Number(v); 
+    if (!Number.isFinite(x)) return 'NaN';
+    if (mode === 'sci') return x.toExponential(places);
+    return x.toFixed(places); 
 }
 function linspace(a,b,n){ const xs=[]; for(let i=0;i<n;i++) xs.push(a+(b-a)*i/(n-1)); return xs; }
 
-// Plotting
+function validateExprInput(label, s){
+  const raw = String(s||'').trim();
+  if (!raw) return { ok:false, msg:`Input Error: ${label} is required.` };
+  const norm = normalizeExpr(raw);
+  // Basic validation (this is not a full parser, but catches common errors)
+  try{ const f = buildFn(norm); const t = f(0); if(!Number.isFinite(t) && !Number.isNaN(t)){} } // Test run
+  catch(e){ return { ok:false, msg:`Syntax Error: ${label} is not a valid expression.` }; }
+  return { ok:true, expr:norm };
+}
+function validateNumber(label, v, opts={}){
+  const num = Number(v);
+  if (!Number.isFinite(num)) return { ok:false, msg:`Input Error: ${label} must be a finite number.` };
+  if (opts.gt !== undefined && !(num > opts.gt)) return { ok:false, msg:`Input Error: ${label} must be > ${opts.gt}.` };
+  if (opts.gte !== undefined && !(num >= opts.gte)) return { ok:false, msg:`Input Error: ${label} must be ≥ ${opts.gte}.` };
+  return { ok:true, value:num };
+}
+function validateInterval(a,b){
+  if (a >= b) return { ok:false, msg:`Input Error: Interval start 'a' (${a}) must be strictly less than interval end 'b' (${b}).` };
+  return { ok:true };
+}
+
+// Plotting (UI)
 function plotFx(phi,a,b,iterXs=[],label='iter'){
   try {
     const xs=linspace(a,b,300), ys=xs.map(x=>{ try{ const y=phi(x); return (Number.isFinite(y) && y < 1e6 && y > -1e6) ? y : NaN; }catch{return NaN;} });
-    const trace={x:xs,y:ys,type:'scatter',mode:'lines',name:'f(x)', line:{color:'#7c3aed'}};
-    const it=iterXs.length?{x:iterXs,y:iterXs.map(x=>{try{return phi(x);}catch{return NaN;}}),mode:'markers',type:'scatter',name:label,marker:{size:8, color:'#f472b6'}}:null;
-    Plotly.newPlot('plot', it?[trace,it]:[trace], {margin:{l:40,r:20,t:20,b:40}},{displayModeBar:false,responsive:true});
-  } catch(e){ console.error(e); }
+    const trace={x:xs,y:ys,type:'scatter',mode:'lines',name:'f(x)'};
+    const it=iterXs.length?{x:iterXs,y:iterXs.map(x=>{try{const y=phi(x); return Number.isFinite(y)? y:NaN;}catch{return NaN;}}),mode:'markers+lines',type:'scatter',name:label,marker:{size:8},line:{dash:'dot'}}:null;
+    Plotly.newPlot(plotDiv, it?[trace,it]:[trace], {title: 'Function Plot', margin:{l:36,r:12,t:40,b:36},xaxis:{title:'x'},yaxis:{title:'y'}},{displayModeBar:false,responsive:true});
+  } catch(e){
+    setHTML(alertsBoxRoot, msgCard('error','Plot error',[e.message||'Could not plot f(x).']));
+    Plotly.purge(plotDiv);
+  }
+}
+
+function buildInterpolator(method, x, y, extra = {}) {
+  if (method === 'vandermonde') {
+    const coeffs = extra.coeffs || [];
+    return (val) => coeffs.reduce((acc, c, idx) => acc + c * Math.pow(val, coeffs.length - 1 - idx), 0);
+  }
+  if (method === 'newton') {
+    const coeffs = extra.coeffs || [];
+    return (val) => {
+      if (!coeffs.length) return 0;
+      let total = coeffs[0];
+      let prod = 1;
+      for (let i = 1; i < coeffs.length; i++) {
+        prod *= (val - x[i - 1]);
+        total += coeffs[i] * prod;
+      }
+      return total;
+    };
+  }
+  // Default to Lagrange form using the raw points
+  return (val) => {
+    let total = 0;
+    for (let i = 0; i < x.length; i++) {
+      let basis = 1;
+      for (let j = 0; j < x.length; j++) {
+        if (i === j) continue;
+        basis *= (val - x[j]) / (x[i] - x[j]);
+      }
+      total += y[i] * basis;
+    }
+    return total;
+  };
 }
 
 function plotPoly(method, x, y, extra = {}) {
   try {
-    let evalPoly;
-    if(method === 'vandermonde' || method === 'newton_interp') {
-       const coeffs = extra.coeffs || [];
-       // If Newton, convert to standard poly evaluation or evaluate divided diffs
-       // For simplicity in plotting, we can use Lagrange form on the raw points for visualization
-       // BUT to be accurate to the method, we should evaluate the specific polynomial.
-       // Here we assume Lagrange-like evaluation for plotting consistency
-       evalPoly = (val) => {
-          let total = 0;
-          for (let i = 0; i < x.length; i++) {
-              let basis = 1;
-              for (let j = 0; j < x.length; j++) if (i !== j) basis *= (val - x[j]) / (x[i] - x[j]);
-              total += y[i] * basis;
-          }
-          return total;
-       };
-    } else {
-       evalPoly = (val) => { /* Lagrange implementation */
-          let total = 0;
-          for (let i = 0; i < x.length; i++) {
-              let basis = 1;
-              for (let j = 0; j < x.length; j++) if (i !== j) basis *= (val - x[j]) / (x[i] - x[j]);
-              total += y[i] * basis;
-          }
-          return total;
-       };
-    }
-
-    const minX = Math.min(...x), maxX = Math.max(...x);
+    const evalPoly = buildInterpolator(method, x, y, extra);
+    const minX = Math.min(...x);
+    const maxX = Math.max(...x);
     const padding = Math.max((maxX - minX) * 0.15, 1e-3);
     const xsPlot = linspace(minX - padding, maxX + padding, 240);
     const ysPlot = xsPlot.map(evalPoly);
@@ -618,10 +1051,18 @@ function plotPoly(method, x, y, extra = {}) {
       { x: xsPlot, y: ysPlot, mode: 'lines', type: 'scatter', name: 'P(x)', line: { width: 3, color: '#7c3aed' } },
       { x, y, mode: 'markers', type: 'scatter', name: 'Data', marker: { size: 9, color: '#111827' } }
     ];
-    Plotly.newPlot('plotInter', traces, { margin: { l: 40, r: 16, t: 40, b: 40 } }, { displayModeBar: false, responsive: true });
+    Plotly.newPlot(plotInter, traces, { title: 'Interpolation Plot', margin: { l: 40, r: 16, t: 40, b: 40 }, xaxis: { title: 'x' }, yaxis: { title: 'y' } }, { displayModeBar: false, responsive: true });
   } catch (err) {
-    setHTML(alertsInter, msgCard('err', 'Plot Error', err.message));
+    setHTML(alertsInter, msgCard('err', 'Plot Error', err.message || 'Unable to plot polynomial.'));
+    Plotly.purge(plotInter);
   }
+}
+
+function evalSplineSegment(method, coef, val) {
+  if (method === 'spline_linear') return coef.m * val + coef.c;
+  if (method === 'spline_quadratic') return coef.a * Math.pow(val, 2) + coef.b * val + coef.c;
+  if (method === 'spline_cubic') return coef.a * Math.pow(val, 3) + coef.b * Math.pow(val, 2) + coef.c * val + coef.d;
+  return NaN;
 }
 
 function plotSpline(method, coefs, x, y) {
@@ -629,78 +1070,44 @@ function plotSpline(method, coefs, x, y) {
     const traces = [];
     for (let i = 0; i < coefs.length; i++) {
       const xsSegment = linspace(x[i], x[i + 1], 60);
-      const ysSegment = xsSegment.map(val => {
-          const c = coefs[i];
-          if (method === 'spline_linear') return c.m * val + c.c;
-          if (method === 'spline_quadratic') return c.a * val**2 + c.b * val + c.c;
-          if (method === 'spline_cubic') return c.a * val**3 + c.b * val**2 + c.c * val + c.d;
-          return NaN;
-      });
+      const ysSegment = xsSegment.map(val => evalSplineSegment(method, coefs[i], val));
       traces.push({ x: xsSegment, y: ysSegment, mode: 'lines', type: 'scatter', name: `S${i}(x)` });
     }
     traces.push({ x, y, mode: 'markers', type: 'scatter', name: 'Data', marker: { size: 9, color: '#111827' } });
-    Plotly.newPlot('plotInter', traces, { margin: { l: 40, r: 16, t: 40, b: 40 } }, { displayModeBar: false, responsive: true });
+    Plotly.newPlot(plotInter, traces, { title: 'Spline Plot', margin: { l: 40, r: 16, t: 40, b: 40 }, xaxis: { title: 'x' }, yaxis: { title: 'y' } }, { displayModeBar: false, responsive: true });
   } catch (err) {
-    setHTML(alertsInter, msgCard('err', 'Plot Error', err.message));
+    setHTML(alertsInter, msgCard('err', 'Plot Error', err.message || 'Unable to plot spline.'));
+    Plotly.purge(plotInter);
   }
 }
-
-// Matrix Helpers
-function parseMatrix(text) {
-  return String(text).trim().split(/\n+/).map(line => line.trim().split(/[\s,]+/).filter(Boolean).map(Number));
-}
-function parseVector(text) {
-  return String(text).trim().split(/[\s,]+/).filter(Boolean).map(Number);
-}
-function parsePoints(text) {
-    const points = String(text).trim().split(/\n+/).map(line => line.trim().split(/[\s,]+/).filter(Boolean).map(Number));
-    if (points.some(p => p.length !== 2 || !Number.isFinite(p[0]) || !Number.isFinite(p[1]))) throw new Error('Invalid points format.');
-    const x = points.map(p => p[0]);
-    const y = points.map(p => p[1]);
-    return { x, y };
-}
-function validateExprInput(label, s){
-  const raw = String(s||'').trim();
-  if (!raw) return { ok:false, msg:`Input Error: ${label} is required.` };
-  try{ buildFn(raw)(0); } catch(e){ return { ok:false, msg:`Syntax Error: ${label} is not valid.` }; }
-  return { ok:true, expr:raw };
-}
-function validateNumber(label, v, opts={}){
-  const num = Number(v);
-  if (!Number.isFinite(num)) return { ok:false, msg:`Input Error: ${label} must be a finite number.` };
-  if (opts.gt !== undefined && !(num > opts.gt)) return { ok:false };
-  return { ok:true, value:num };
-}
-function validateInterval(a,b){
-  if (a >= b) return { ok:false, msg:`Input Error: Interval start 'a' must be less than 'b'.` };
-  return { ok:true };
-}
-
-function renderTable(headers, rows, target) {
-  const generateHTML = (dataRows, showEllipsis = false) => {
-    const thead = '<thead><tr>' + headers.map(h => `<th>${h}</th>`).join('') + '</tr></thead>';
-    let tbodyContent = '';
-    dataRows.forEach((r) => {
-      if (r[0] === '...' && showEllipsis) {
-        tbodyContent += `<tr class="cursor-pointer hover:bg-gray-100" id="expandRow_${target.id}" title="Click to show all rows">
-          <td colspan="${headers.length}" class="text-center font-bold text-gray-500 tracking-widest">. . . (Click to Expand) . . .</td>
-        </tr>`;
-      } else {
-        tbodyContent += `<tr>${r.map(c => `<td class="num">${c}</td>`).join('')}</tr>`;
-      }
-    });
-    target.innerHTML = thead + `<tbody>${tbodyContent}</tbody>`;
-    const expandBtn = document.getElementById(`expandRow_${target.id}`);
-    if (expandBtn) expandBtn.addEventListener('click', () => generateHTML(rows, false));
-  };
-  if (rows.length > 8) {
-    const truncatedRows = [...rows.slice(0, 3), Array(headers.length).fill('...'), ...rows.slice(-3)];
-    generateHTML(truncatedRows, true);
-  } else {
-    generateHTML(rows, false);
+// Render table, truncated if necessary (UI)
+/* DESPUÉS (Corregido) - Pega esto */
+function renderTable(headers, rows, target){
+  let displayRows = rows;
+  if (rows.length > 8) { // e.g., 3 + 1 ellipsis + 3
+      displayRows = [
+          ...rows.slice(0, 3),
+          headers.map(() => '...'), // Ellipsis row
+          ...rows.slice(-3)
+      ];
   }
+  
+  // 1. Crea la cabecera
+  const thead = '<thead><tr>' + headers.map(h => `<th>${h}</th>`).join('') + '</tr></thead>';
+  
+  // 2. Crea las filas del cuerpo (solo los <tr>)
+  const bodyRows = displayRows.map(r => {
+    const cells = r.map(c => `<td class="num">${c}</td>`).join('');
+    return `\n<tr>${cells}</tr>`;
+  }).join('');
+  
+  // 3. Envuelve TODAS las filas en UN SOLO <tbody>
+  const tbody = `<tbody>${bodyRows}\n</tbody>`;
+  
+  // 4. Asigna el HTML
+  target.innerHTML = thead + tbody;
 }
-
+// NEW: Helper to render the augmented matrix step (from index (1).txt)
 function renderAugmentedMatrixHTML(Ab, kPivot=null){
   const n = Ab.length, m = Ab[0].length;
   let html = '<table class="table"><thead><tr>';
@@ -709,8 +1116,9 @@ function renderAugmentedMatrixHTML(Ab, kPivot=null){
   for (let i=0;i<n;i++){
     html += '<tr>';
     for (let j=0;j<m;j++){
+      const isDiag = (i===j && j<m-1);
       const isPivot = (kPivot!==null && i===kPivot && j===kPivot);
-      const klass = isPivot ? 'pivot' : '';
+      const klass = isPivot ? 'pivot' : (isDiag ? 'diag' : '');
       html += `<td class="num ${klass}">${fmt(Ab[i][j])}</td>`;
     }
     html += '</tr>';
@@ -719,459 +1127,1619 @@ function renderAugmentedMatrixHTML(Ab, kPivot=null){
   return html;
 }
 
-// Complex Numbers for Cholesky
-const Complex = {
-  fromReal: (r) => ({ re: Number(r), im: 0.0 }),
-  add: (a,b) => ({ re: a.re+b.re, im: a.im+b.im }),
-  sub: (a,b) => ({ re: a.re-b.re, im: a.im-b.im }),
-  mul: (a,b) => ({ re: a.re*b.re - a.im*b.im, im: a.re*b.im + a.im*b.re }),
-  div: (a,b) => { const d=b.re**2+b.im**2; return { re:(a.re*b.re+a.im*b.im)/d, im:(a.im*b.re-a.re*b.im)/d }; },
-  sqrt: (a) => { const r=Math.sqrt(a.re**2+a.im**2), t=Math.atan2(a.im,a.re)/2, m=Math.sqrt(r); return { re:m*Math.cos(t), im:m*Math.sin(t) }; },
-  abs: (a) => Math.sqrt(a.re**2+a.im**2)
-};
 
-/* ================= ALGORITHMS ================= */
+// Pre-check for bracketing methods (UI)
+function scanIntervalDetailed(phi, a, b, samples = 240) {
+  const xs = linspace(a, b, samples);
+  let invalid = 0; const flips = [];
+  let prevSign = null, prevX = xs[0], prevOk = false;
+  for (const x of xs) {
+    let y; let ok = true; try{ y = phi(x); if(!Number.isFinite(y)) ok=false; }catch{ ok=false; }
+    if (!ok) { invalid++; prevSign = null; prevOk = false; prevX = x; continue; }
+    const s = Math.sign(y === 0 ? 0 : y);
+    if (prevOk && prevSign !== null) { if (prevSign * s < 0) flips.push([prevX, x]); }
+    prevSign = (s === 0) ? prevSign : s; // Don't reset sign on exact zero
+    prevOk = true; prevX = x;
+  }
+  const invalidRatio = invalid / xs.length;
+  const signChange = flips.length > 0;
+  return { invalidRatio, signChange, flips, samples: xs.length };
+}
+function precheckRoot(phi, a, b, methodName) {
+  // a < b check is now done in runRoot()
+  const s = scanIntervalDetailed(phi, a, b, 240);
+  if (s.invalidRatio > 0.25) return { ok:false, msg:"f(x) seems undefined or unbounded on [a,b]. Try a smaller interval.", flips:s.flips };
+  // Sign-change validation moved to runRoot() for didactic feedback
+  return { ok:true, flips:s.flips };
+}
+
+function renderBracketSuggestions(flips) {
+  if (!flips || !flips.length) { bracketBox.innerHTML = ''; return; }
+  const top = flips.slice(0, 4);
+  const chips = top.map(([u,v]) => {
+    const lo = Math.min(u,v), hi = Math.max(u,v);
+    // NOTA: Usamos fmt() aquí porque esto es UI
+    return `<span class="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-cyan-50 text-cyan-800 cursor-pointer" data-a="${lo}" data-b="${hi}">Try [${fmt(lo, 4)}, ${fmt(hi, 4)}]</span>`;
+  }).join(' ');
+  bracketBox.innerHTML = `<div class="msg recommend"><h4>Bracket Suggestions</h4><p>Sign changes detected near:</p><div class="mt-1 flex flex-wrap gap-2">${chips}</div></div>`;
+  bracketBox.querySelectorAll('[data-a]')?.forEach(ch=>{
+    ch.addEventListener('click', ()=>{
+      aInput.value = ch.getAttribute('data-a');
+      bInput.value = ch.getAttribute('data-b');
+      try { plotFx(buildFn(fxInput.value), Number(aInput.value), Number(bInput.value), [], 'iter'); } catch {}
+    });
+  });
+}
+
+/* ================= Capa de Lógica Pura (El "Cerebro") ================= */
+// Recomendación #3: Separar la lógica de la UI.
+// Este objeto contiene todos los algoritmos puros.
+// No saben nada de HTML, 'fmt', o 'rows'.
+// Toman datos crudos y devuelven resultados crudos.
 const NumericalMethods = {
+  
+  // --- Helpers Puros ---
+  
+  // Numerical derivatives
+  d1: (phi,x,h=1e-6) => (phi(x+h)-phi(x-h))/(2*h),
+  d2: (phi,x,h=1e-5) => (phi(x+h)-2*phi(x)+phi(x-h))/(h*h),
+  
+  // Pre-check for iterative methods
+  checkDiagonalZeros: (A) => {
+    for (let i = 0; i < A.length; i++) {
+        if (Math.abs(A[i][i]) < 1e-14) {
+            throw new Error(`Theorem Violation: A zero was found on the diagonal at A[${i},${i}]. Iterative methods (Jacobi, Gauss-Seidel, SOR) require a non-zero diagonal.`);
+        }
+    }
+  },
+  
+  // NEW: Helper from index (1).txt
+  cloneMatrix: (M) => M.map(r=>r.slice()),
+
+  // --- Métodos de Búsqueda de Raíces ---
+
   incrementalSearch: (phi,x0,delta,nmax) => {
     if(delta===0) return { bracket:null, msg:"Delta must be non-zero." };
-    let x1=x0+delta, y0=phi(x0); if(y0===0) return { bracket:[x0,x0], msg:"Exact root at start." };
-    for(let k=0;k<Number(nmax);k++){ const y1=phi(x1); if(y0*y1<0) return { bracket:[x0,x1], msg:`Sign change in [${fmt(x0)}, ${fmt(x1)}]` }; x0=x1; x1=x1+delta; y0=y1; }
-    return { bracket:null, msg:"No sign change found." };
+    let x1=x0+delta; let y0 = phi(x0); if(y0===0) return { bracket:[x0,x0], msg:"Exact root at start." };
+    for(let k=0;k<Number(nmax);k++){ const y1=phi(x1); if(y0*y1<0) return { bracket:[x0,x1], msg:`Sign change in [${x0}, ${x1}]` }; x0=x1; x1=x1+delta; y0=y1; }
+    return { bracket:null, msg:"No sign change found. Try a different start, range, or delta." };
   },
+  
   bisection: (phi,a,b,tol,kmax) => {
     const steps=[]; let fa=phi(a), fb=phi(b);
-    if(fa*fb>0) return { error:"Theorem Violation: f(a)·f(b) must be < 0." };
+    if(fa*fb>0) return { error:"Theorem Violation: No sign change on [a,b]. f(a)·f(b) must be < 0." };
     let xmOld=a, xm=a, fm=fa;
     for(let k=1;k<=kmax;k++){
       xm=(a+b)/2; fm=phi(xm);
       const errX=Math.abs(xm-xmOld), errB=(b-a)/2;
-      steps.push({k, a, b, xm, fm, errX, errB});
+      steps.push({k, a, b, xm, fm, errX, errB}); // Guardar datos crudos
       if(fm===0 || errB<=tol) return { steps, root:xm, err:errB, k };
       if(fa*fm<0){ b=xm; fb=fm; } else { a=xm; fa=fm; } xmOld=xm;
     }
     return { steps, root:xm, err:(b-a)/2, k:kmax };
   },
+  
   falsePosition: (phi,a,b,tol,kmax) => {
     const steps=[]; let fa=phi(a), fb=phi(b);
-    if(fa*fb>0) return { error:"Theorem Violation: f(a)·f(b) must be < 0." };
+    if(fa*fb>0) return { error:"Theorem Violation: No sign change on [a,b]. f(a)·f(b) must be < 0." };
     let xmOld=a, xm=a;
     for(let k=1;k<=kmax;k++){
       fa=phi(a); fb=phi(b);
-      const denom=fb-fa; if(Math.abs(denom)<1e-14) return { error:"Denominator zero." };
+      const denom=fb-fa; if(Math.abs(denom)<1e-14) return { error:"Denominator f(b)-f(a) is zero. Cannot continue." };
       xm=b - fb*(b-a)/denom; const fm=phi(xm), err=Math.abs(xm-xmOld);
-      steps.push({k, a, b, xm, fm, err});
+      steps.push({k, a, b, xm, fm, err}); // Guardar datos crudos
       if(fm===0 || err<=tol) return { steps, root:xm, err, k };
       if(fa*fm<0){ b=xm; } else { a=xm; } xmOld=xm;
     }
     return { steps, root:xm, err:Math.abs(xm-xmOld), k:kmax };
   },
+  
   fixedPoint: (psi,a,b,x0,tol,kmax) => {
     const steps=[];
     for(let k=1;k<=kmax;k++){
       const x1=psi(x0);
-      if (!Number.isFinite(x1)) return { steps, error:"g(x) non-numeric." };
+      if (!Number.isFinite(x1)) return { steps, error:"g(x) evaluated to a non-numeric value. Check function." };
       const err=Math.abs(x1-x0);
-      steps.push({k, x0, x1, err});
+      steps.push({k, x0, x1, err}); // Guardar datos crudos
+      if(!(x1>=Math.min(a,b) && x1<=Math.max(a,b))){
+        return { steps, error:"Iterate left [a,b]. Tighten the interval or reformulate g(x)." };
+      }
       if(err<=tol) return { steps, root:x1, err, k };
       x0=x1;
     }
     return { steps, root:x0, err:steps.at(-1)?.err, k:kmax };
   },
+
   newton: (phi,x0,tol,kmax,a,b,fprimeAnalytic=null) => {
     const steps=[];
     for(let k=1;k<=kmax;k++){
       const fx = phi(x0);
-      const fp = fprimeAnalytic ? fprimeAnalytic(x0) : (phi(x0+1e-6)-phi(x0-1e-6))/(2e-6);
-      if(!isFinite(fp) || Math.abs(fp)<1e-14) return { steps, error:"Derivative zero." };
+      const fp = fprimeAnalytic ? fprimeAnalytic(x0) : NumericalMethods.d1(phi,x0);
+      if(!isFinite(fp) || Math.abs(fp)<1e-14) return { steps, error:"Derivative f'(x) is near zero. Pick a different x0." };
       let x1 = x0 - fx/fp;
+      // If it jumps out of bounds, reset to middle of interval
+      if(!(x1>=Math.min(a,b) && x1<=Math.max(a,b))) {
+         x1 = (a+b)/2; 
+      }
       const err=Math.abs(x1-x0);
-      steps.push({k, x0, fx, fp, x1, err});
+      steps.push({k, x0, fx, fp, x1, err}); // Guardar datos crudos
       if(err<=tol || fx === 0) return { steps, root:x1, err, k };
       x0=x1;
     }
     return { steps, root:x0, err:steps.at(-1)?.err, k:kmax };
   },
+  
   secant: (phi,x0,x1,tol,kmax,a,b) => {
     const steps=[];
     for(let k=1;k<=kmax;k++){
       const f0=phi(x0), f1=phi(x1);
-      if (f1 === 0) return { steps, root:x1, err:0, k };
-      const denom=f1-f0; if(Math.abs(denom)<1e-14) return { steps, error:"Denominator zero." };
+      if (f1 === 0) return { steps, root:x1, err:0, k }; // Found exact root
+      const denom=f1-f0; if(Math.abs(denom)<1e-14) return { steps, error:"Denominator f(x1)-f(x0) is zero. Pick different seeds." };
       const x2=x1 - f1*(x1-x0)/denom;
+      if(!(x2>=Math.min(a,b) && x2<=Math.max(a,b))) return { steps, error:"Iterate left [a,b]. Try tighter seeds." };
       const err=Math.abs(x2-x1);
-      steps.push({k, x0, x1, x2, fm: phi(x2), err});
+      steps.push({k, x0, x1, x2, fm: phi(x2), err}); // Guardar datos crudos
       if(err<=tol) return { steps, root:x2, err, k };
       x0=x1; x1=x2;
     }
     return { steps, root:x1, err:steps.at(-1)?.err, k:kmax };
   },
+  
   modifiedNewton: (phi,x0,tol,kmax,a,b,fprimeAnalytic=null,f2primeAnalytic=null) => {
     const steps=[];
     for(let k=1;k<=kmax;k++){
       const fx=phi(x0);
-      if (fx === 0) return { steps, root:x0, err:0, k };
-      const fp=fprimeAnalytic ? fprimeAnalytic(x0) : (phi(x0+1e-6)-phi(x0-1e-6))/(2e-6);
-      const fpp=f2primeAnalytic ? f2primeAnalytic(x0) : (phi(x0+1e-5)-2*phi(x0)+phi(x0-1e-5))/(1e-10);
+      if (fx === 0) return { steps, root:x0, err:0, k }; // Found exact root
+      const fp=fprimeAnalytic ? fprimeAnalytic(x0) : NumericalMethods.d1(phi,x0);
+      const fpp=f2primeAnalytic ? f2primeAnalytic(x0) : NumericalMethods.d2(phi,x0);
       const denom=fp*fp - fx*fpp;
-      if(!isFinite(denom) || Math.abs(denom)<1e-14) return { steps, error:"Unstable step." };
+      if(!isFinite(denom) || Math.abs(denom)<1e-14) return { steps, error:"Unstable step: denominator is near zero. Try a different x0." };
       const x1=x0 - fx*fp/denom;
+      if(!(x1>=Math.min(a,b) && x1<=Math.max(a,b))) return { steps, error:"Iterate left [a,b]. Try a different x0." };
       const err=Math.abs(x1-x0); 
-      steps.push({k, x0, fx, fp, fpp, x1, err});
+      steps.push({k, x0, fx, fp, fpp, x1, err}); // Guardar datos crudos
       if(err<=tol) return { steps, root:x1, err, k };
       x0=x1;
     }
     return { steps, root:x0, err:steps.at(-1)?.err, k:kmax };
   },
+
+  // --- Métodos de Sistemas Directos (Factorización) ---
   
-  // --- Direct Systems (Simplified) ---
-  // Using generic Gaussian solver for Vandermonde/Splines
-  gaussianSolve: (A, b) => {
-    const n = A.length;
+  lu_gaussian: (A_in) => {
+    const U = deepCopy(A_in);
+    const n = U.length;
+    const L = identity(n);
+    const etapas = []; // To store stages
+    etapas.push({ L: deepCopy(L), U: deepCopy(U), msg: 'Stage 0 (Initial)' });
     for (let k = 0; k < n - 1; k++) {
-        let p = k;
-        for (let i = k + 1; i < n; i++) if (Math.abs(A[i][k]) > Math.abs(A[p][k])) p = i;
-        if (p !== k) { [A[k], A[p]] = [A[p], A[k]]; [b[k], b[p]] = [b[p], b[k]]; }
-        for (let i = k + 1; i < n; i++) {
-            const m = A[i][k] / A[k][k];
-            for (let j = k; j < n; j++) A[i][j] -= m * A[k][j];
-            b[i] -= m * b[k];
+        if (Math.abs(U[k][k]) < 1e-14) {
+            throw new Error("Execution Failed: A zero pivot was encountered. This method is unstable for this matrix. Please use Partial Pivoting.");
         }
+        for (let i = k + 1; i < n; i++) {
+            const m = U[i][k] / U[k][k];
+            L[i][k] = m;
+            for (let j = k; j < n; j++) {
+                U[i][j] -= m * U[k][j];
+            }
+        }
+        etapas.push({ L: deepCopy(L), U: deepCopy(U), msg: `Stage ${k+1}` });
     }
-    const x = Array(n).fill(0);
-    for (let i = n - 1; i >= 0; i--) {
-        let s = b[i];
-        for (let j = i + 1; j < n; j++) s -= A[i][j] * x[j];
-        x[i] = s / A[i][i];
-    }
-    return x;
+    return { L, U, etapas };
   },
 
-  // --- Interpolation ---
+  lu_partial_pivot: (A_in) => {
+    const U = deepCopy(A_in);
+    const n = U.length;
+    const L = identity(n);
+    const P = identity(n);
+    const etapas = [];
+    etapas.push({ L: deepCopy(L), U: deepCopy(U), P: deepCopy(P), msg: 'Stage 0 (Initial)' });
+    
+    for (let k = 0; k < n - 1; k++) {
+        let pivot = k;
+        for (let i = k + 1; i < n; i++) {
+            if (Math.abs(U[i][k]) > Math.abs(U[pivot][k])) {
+                pivot = i;
+            }
+        }
+        if (Math.abs(U[pivot][k]) < 1e-14) throw new Error("Singular Matrix: A pivot of zero was found, but no non-zero pivot exists in the column.");
+        
+        if (pivot !== k) {
+            [U[k], U[pivot]] = [U[pivot], U[k]];
+            [P[k], P[pivot]] = [P[pivot], P[k]];
+            for (let j = 0; j < k; j++) {
+                [L[k][j], L[pivot][j]] = [L[pivot][j], L[k][j]];
+            }
+        }
+
+        for (let i = k + 1; i < n; i++) {
+            const m = U[i][k] / U[k][k];
+            L[i][k] = m;
+            for (let j = k; j < n; j++) {
+                U[i][j] -= m * U[k][j];
+            }
+        }
+        etapas.push({ L: deepCopy(L), U: deepCopy(U), P: deepCopy(P), msg: `Stage ${k+1}` });
+    }
+    return { L, U, P, etapas };
+  },
+
+  doolittle: (A_in) => {
+    const A = deepCopy(A_in);
+    const n = A.length;
+    const L = identity(n);
+    const U = zeros(n, n);
+    const etapas = [];
+    etapas.push({ L: deepCopy(L), U: deepCopy(U), msg: 'Stage 0 (Initial)' });
+
+    for (let i = 0; i < n; i++) {
+        for (let j = i; j < n; j++) {
+            let s = 0;
+            for (let k = 0; k < i; k++) s += L[i][k] * U[k][j];
+            U[i][j] = A[i][j] - s;
+        }
+        for (let j = i + 1; j < n; j++) {
+            if (Math.abs(U[i][i]) < 1e-14) throw new Error("Execution Failed: Zero pivot encountered. Doolittle requires principal submatrices to be non-singular.");
+            let s = 0;
+            for (let k = 0; k < i; k++) s += L[j][k] * U[k][i];
+            L[j][i] = (A[j][i] - s) / U[i][i];
+        }
+        etapas.push({ L: deepCopy(L), U: deepCopy(U), msg: `Stage ${i+1}` });
+    }
+    return { L, U, etapas };
+  },
+
+  crout: (A_in) => {
+    const A = deepCopy(A_in);
+    const n = A.length;
+    const L = zeros(n, n);
+    const U = identity(n);
+    const etapas = [];
+    etapas.push({ L: deepCopy(L), U: deepCopy(U), msg: 'Stage 0 (Initial)' });
+
+    for (let j = 0; j < n; j++) {
+        for (let i = j; i < n; i++) {
+            let s = 0;
+            for (let k = 0; k < j; k++) s += L[i][k] * U[k][j];
+            L[i][j] = A[i][j] - s;
+        }
+        for (let i = j + 1; i < n; i++) {
+            if (Math.abs(L[j][j]) < 1e-14) throw new Error("Execution Failed: Zero pivot encountered. Crout requires principal submatrices to be non-singular.");
+            let s = 0;
+            for (let k = 0; k < j; k++) s += L[j][k] * U[k][i];
+            U[j][i] = (A[j][i] - s) / L[j][j];
+        }
+        etapas.push({ L: deepCopy(L), U: deepCopy(U), msg: `Stage ${j+1}` });
+    }
+    return { L, U, etapas };
+  },
+
+  cholesky: (A_in) => {
+    const n = A_in.length;
+    for (let i = 0; i < n; i++) {
+        for (let j = i + 1; j < n; j++) {
+            if (A_in[i][j] !== A_in[j][i]) {
+                throw new Error("Theorem Violation: Matrix is not symmetric (A[i,j] != A[j,i]). Cholesky requires A = Aᵀ.");
+            }
+        }
+    }
+    
+    const A = A_in.map(row => row.map(Complex.fromReal));
+    const L = zeros(n, n).map(row => row.map(Complex.fromReal));
+    const etapas = [];
+    etapas.push({ L: deepCopy(L), msg: 'Stage 0 (Initial)' });
+
+    for (let i = 0; i < n; i++) {
+        for (let j = 0; j <= i; j++) {
+            let s = Complex.fromReal(0);
+            for (let k = 0; k < j; k++) {
+                s = Complex.add(s, Complex.mul(L[i][k], L[j][k]));
+            }
+            const diff = Complex.sub(A[i][j], s);
+            if (i === j) {
+                if (diff.re < 0 && Math.abs(diff.im) < 1e-12) {
+                    throw new Error("Theorem Violation: Matrix is not positive-definite (encountered square root of a negative number).");
+                }
+                L[i][i] = Complex.sqrt(diff);
+            } else {
+                if (Math.abs(L[j][j].re) < 1e-14 && Math.abs(L[j][j].im) < 1e-14) {
+                    throw new Error("Execution Failed: Zero pivot encountered during factorization.");
+                }
+                L[i][j] = Complex.div(diff, L[j][j]);
+            }
+        }
+        etapas.push({ L: deepCopy(L), msg: `Stage ${i+1}` });
+    }
+    return { L, U: null, etapas };
+  },
+
+  // --- NEW: Métodos de Sistemas Directos (Gaussian Elimination con Pasos) ---
+  
+  eliminationWithSteps_NoPivot: (Ain, bin, tol=1e-12) => {
+    const Ab = Ain.map((r,i)=> r.concat([bin[i]]));
+    const n = Ab.length;
+    const etapas = []; for(let k=0;k<n-1;k++){
+      etapas.push({ Ab: NumericalMethods.cloneMatrix(Ab), pivot: k });
+      if(Math.abs(Ab[k][k])<=tol) throw new Error("Zero/near-zero pivot. Try Partial Pivoting.");
+      for(let i=k+1;i<n;i++){
+        const m = Ab[i][k]/Ab[k][k];
+        for(let j=k;j<=n;j++){ Ab[i][j] -= m*Ab[k][j]; }
+      }
+    }
+    etapas.push({ Ab: NumericalMethods.cloneMatrix(Ab), pivot: n-1 });
+    return { etapas, U: Ab.map(r=>r.slice(0,n)), bU: Ab.map(r=>r[n]), swaps: [] };
+  },
+  
+  eliminationWithSteps_Partial: (Ain, bin, tol=1e-12) => {
+    const Ab = Ain.map((r,i)=> r.concat([bin[i]]));
+    const n = Ab.length; const etapas = []; const swaps=[];
+    for(let k=0;k<n-1;k++){
+      etapas.push({ Ab: NumericalMethods.cloneMatrix(Ab), pivot: k });
+      let p=k, maxv=Math.abs(Ab[k][k]); for(let i=k+1;i<n;i++){ const v=Math.abs(Ab[i][k]); if(v>maxv){maxv=v;p=i;} }
+      if(maxv<=tol) throw new Error("All candidate pivots are near-zero. Matrix is singular or ill-conditioned.");
+      if(p!==k){ const tr=Ab[k]; Ab[k]=Ab[p]; Ab[p]=tr; swaps.push({type:'row', a:k, b:p}); }
+      for(let i=k+1;i<n;i++){ const m=Ab[i][k]/Ab[k][k]; for(let j=k;j<=n;j++) Ab[i][j]-=m*Ab[k][j]; }
+    }
+    etapas.push({ Ab: NumericalMethods.cloneMatrix(Ab), pivot: n-1 });
+    return { etapas, swaps, U: Ab.map(r=>r.slice(0,n)), bU: Ab.map(r=>r[n]), colPerm: null };
+  },
+  
+  eliminationWithSteps_Total: (Ain, bin, tol=1e-12) => {
+    const Ab = Ain.map((r,i)=> r.concat([bin[i]]));
+    const n = Ab.length; const etapas = []; const swaps=[]; const colPerm = Array.from({length:n},(_,i)=>i);
+    for(let k=0;k<n-1;k++){
+      etapas.push({ Ab: NumericalMethods.cloneMatrix(Ab), pivot: k });
+      let p=k,q=k,maxv=Math.abs(Ab[k][k]);
+      for(let i=k;i<n;i++) for(let j=k;j<n;j++){ const v=Math.abs(Ab[i][j]); if(v>maxv){maxv=v;p=i;q=j;} }
+      if(maxv<=tol) throw new Error("Active submatrix is near-zero. Matrix is singular or ill-conditioned.");
+      if(p!==k){ const tr=Ab[k]; Ab[k]=Ab[p]; Ab[p]=tr; swaps.push({type:'row', a:k, b:p}); }
+      if(q!==k){ 
+        for(let i=0;i<n;i++){ const t=Ab[i][k]; Ab[i][k]=Ab[i][q]; Ab[i][q]=t; } 
+        const tp=colPerm[k]; colPerm[k]=colPerm[q]; colPerm[q]=tp; swaps.push({type:'col', a:k, b:q}); 
+      }
+      for(let i=k+1;i<n;i++){ const m=Ab[i][k]/Ab[k][k]; for(let j=k;j<=n;j++) Ab[i][j]-=m*Ab[k][j]; }
+    }
+    etapas.push({ Ab: NumericalMethods.cloneMatrix(Ab), pivot: n-1 });
+    return { etapas, swaps, colPerm, U: Ab.map(r=>r.slice(0,n)), bU: Ab.map(r=>r[n]) };
+  },
+
+
+  // --- Métodos de Sistemas Iterativos ---
+
+  jacobi: (A, b, x0, tol, kmax) => {
+    NumericalMethods.checkDiagonalZeros(A); // Pre-check
+    const n = A.length;
+    const T = zeros(n, n);
+    const C = Array(n).fill(0.0);
+    const steps = [];
+    
+    for (let i = 0; i < n; i++) {
+        const diag = A[i][i];
+        C[i] = b[i] / diag;
+        for (let j = 0; j < n; j++) {
+            if (i !== j) T[i][j] = -A[i][j] / diag;
+        }
+    }
+
+    let x = [...x0];
+    steps.push({k: 0, x: [...x], e: null});
+    
+    for (let k = 1; k <= kmax; k++) {
+        const x_new = matVec(T, x).map((val, i) => val + C[i]);
+        const e = vecNorm2(vecSub(x_new, x));
+        steps.push({k, x: [...x_new], e});
+        x = x_new;
+        if (e <= tol) break;
+    }
+    return { x, T, C, steps, k: steps.length - 1 };
+  },
+
+  gauss_seidel: (A, b, x0, tol, kmax) => {
+    NumericalMethods.checkDiagonalZeros(A); // Pre-check
+    const n = A.length;
+    const steps = [];
+    let x = [...x0];
+    steps.push({k: 0, x: [...x], e: null});
+
+    // Calculate theoretical T and C for reporting
+    const D = zeros(n,n), L = zeros(n,n), U = zeros(n,n);
+    for(let i=0; i<n; i++) {
+        for(let j=0; j<n; j++) {
+            if (i==j) D[i][j] = A[i][j];
+            else if (i>j) L[i][j] = -A[i][j];
+            else U[i][j] = -A[i][j];
+        }
+    }
+    const DL = zeros(n,n);
+    for(let i=0; i<n; i++) for(let j=0; j<n; j++) DL[i][j] = D[i][j] - L[i][j];
+    const InvDL = invLowerTriangular(DL);
+    const T = matMul(InvDL, U);
+    const C = matVec(InvDL, b);
+
+    // Actual iteration
+    for (let k = 1; k <= kmax; k++) {
+        const x_old = [...x];
+        for (let i = 0; i < n; i++) {
+            let s1 = 0, s2 = 0;
+            for (let j = 0; j < i; j++) s1 += A[i][j] * x[j];
+            for (let j = i + 1; j < n; j++) s2 += A[i][j] * x_old[j];
+            x[i] = (b[i] - s1 - s2) / A[i][i];
+        }
+        const e = vecNorm2(vecSub(x, x_old));
+        steps.push({k, x: [...x], e});
+        if (e <= tol) break;
+    }
+    return { x, T, C, steps, k: steps.length - 1 };
+  },
+
+  sor: (A, b, x0, w, tol, kmax) => {
+    NumericalMethods.checkDiagonalZeros(A); // Pre-check
+    const n = A.length;
+    const steps = [];
+    let x = [...x0];
+    steps.push({k: 0, x: [...x], e: null});
+
+    // Calculate theoretical T and C for reporting
+    const D = zeros(n,n), L = zeros(n,n), U = zeros(n,n);
+    for(let i=0; i<n; i++) {
+        for(let j=0; j<n; j++) {
+            if (i==j) D[i][j] = A[i][j];
+            else if (i>j) L[i][j] = -A[i][j];
+            else U[i][j] = -A[i][j];
+        }
+    }
+    const DwL = zeros(n,n);
+    for(let i=0; i<n; i++) for(let j=0; j<n; j++) DwL[i][j] = D[i][j] - w*L[i][j];
+    const InvDwL = invLowerTriangular(DwL);
+    const M = zeros(n,n);
+    for(let i=0; i<n; i++) for(let j=0; j<n; j++) M[i][j] = (1-w)*D[i][j] + w*U[i][j];
+    const T = matMul(InvDwL, M);
+    const C = matVec(InvDwL, b).map(v => v * w);
+
+    // Actual iteration
+    for (let k = 1; k <= kmax; k++) {
+        const x_old = [...x];
+        for (let i = 0; i < n; i++) {
+            let s1 = 0, s2 = 0;
+            for (let j = 0; j < i; j++) s1 += A[i][j] * x[j];
+            for (let j = i + 1; j < n; j++) s2 += A[i][j] * x_old[j];
+            x[i] = (1 - w) * x_old[i] + (w / A[i][i]) * (b[i] - s1 - s2);
+        }
+        const e = vecNorm2(vecSub(x, x_old));
+        steps.push({k, x: [...x], e});
+        if (e <= tol) break;
+    }
+    return { x, T, C, steps, k: steps.length - 1 };
+  },
+
+  // --- Métodos de Interpolación ---
+
   vandermonde: (x, y) => {
     const n = x.length;
-    const V = Array.from({ length: n }, () => Array(n).fill(0));
-    for (let i = 0; i < n; i++) for (let j = 0; j < n; j++) V[i][j] = Math.pow(x[i], n - 1 - j);
-    // We need to clone V/y because gaussianSolve modifies them
-    const a = NumericalMethods.gaussianSolve(V.map(r=>[...r]), [...y]);
-    
-    // Helper to format polynomial string
-    const polyStr = a.map((coef, i) => {
-        const power = n - 1 - i;
-        if (Math.abs(coef) < 1e-10) return '';
-        const term = `${coef.toFixed(4)}`;
-        if (power === 0) return term;
-        if (power === 1) return `${term}x`;
-        return `${term}x^${power}`;
-    }).filter(Boolean).join(' + ').replace(/\+\s-/g, '- ');
-    return { V, a, polyStr: polyStr || '0' };
+    const V = zeros(n, n);
+    for (let i = 0; i < n; i++) {
+        for (let j = 0; j < n; j++) {
+            V[i][j] = Math.pow(x[i], n - 1 - j);
+        }
+    }
+    const a = gaussianSolve(V, y);
+    return { V, a, polyStr: polyToString(a) };
   },
 
   newton_divided_differences: (x, y) => {
     const n = x.length;
-    const table = Array.from({length: n}, () => Array(n).fill(0));
+    const table = zeros(n, n);
     for(let i=0; i<n; i++) table[i][0] = y[i];
+    
     for (let k = 1; k < n; k++) {
         for (let i = 0; i < n - k; i++) {
             table[i][k] = (table[i + 1][k - 1] - table[i][k - 1]) / (x[i + k] - x[i]);
         }
     }
-    const coeffs = table[0]; // Diagonal
-    let polyStr = `${coeffs[0].toFixed(4)}`;
+    
+    const diagonalCoeffs = Array.from({length: n}, (_, i) => table[0][i]);
+    
+    let polyStr = diagonalCoeffs[0].toFixed(6);
+    let term = "";
     for (let k = 1; k < n; k++) {
-        let term = coeffs[k].toFixed(4);
-        for(let j=0; j<k; j++) term += `(x - ${x[j]})`;
-        polyStr += (coeffs[k] >= 0 ? ' + ' : ' ') + term;
+        term += `(x ${x[k-1] >= 0 ? '-' : '+'} ${Math.abs(x[k-1])})`;
+        const sign = diagonalCoeffs[k] >= 0 ? '+' : '-';
+        polyStr += ` ${sign} ${Math.abs(diagonalCoeffs[k]).toFixed(6)}${term}`;
     }
-    return { table, coeffs, polyStr };
+    
+    const displayTable = table.map((row, i) => row.slice(0, n-i));
+    
+    return { table: displayTable, coeffs: diagonalCoeffs, polyStr };
   },
-  
+
   lagrange: (x, y) => {
     const n = x.length;
     let polyStr = "";
-    for (let k = 0; k < n; k++) {
-        let num = "", den = 1;
+    
+    function buildL_k(k) {
+        let numStr = "";
+        let den = 1.0;
         for (let j = 0; j < n; j++) {
-            if (k !== j) {
-                num += `(x - ${x[j]})`;
-                den *= (x[k] - x[j]);
-            }
+            if (k === j) continue;
+            numStr += `(x ${x[j] >= 0 ? '-' : '+'} ${Math.abs(x[j])})`;
+            den *= (x[k] - x[j]);
         }
-        const term = (y[k]/den).toFixed(4);
-        polyStr += (k > 0 && y[k]/den >= 0 ? " + " : " ") + `${term}${num}`;
+        return `(${numStr} / ${den.toFixed(6)})`;
     }
-    return { polyStr };
+
+    for (let k = 0; k < n; k++) {
+        const sign = (k > 0 && y[k] >= 0) ? '+' : ' -';
+        const val = (k > 0) ? Math.abs(y[k]) : y[k];
+        if (Math.abs(val) < 1e-14) continue;
+        polyStr += ` ${sign} ${val.toFixed(6)} * ${buildL_k(k)}`;
+    }
+    
+    return { polyStr: polyStr.trim().replace(/^\+/, '') };
   },
-  
+
   linear_splines: (x, y) => {
-      // Simplified: Returns array of strings "m*x + c"
-      const res = [];
-      for(let i=0; i<x.length-1; i++) {
-          const m = (y[i+1]-y[i])/(x[i+1]-x[i]);
-          const c = y[i] - m*x[i];
-          res.push(`S${i}(x) = ${m.toFixed(4)}x + ${c.toFixed(4)}`);
-      }
-      return { coefs: res, polyStrs: res }; // Mocking structure
+    const n = x.length - 1;
+    const coefs = [];
+    const polyStrs = [];
+    for (let i = 0; i < n; i++) {
+        const m = (y[i+1] - y[i]) / (x[i+1] - x[i]);
+        const c = y[i] - m * x[i];
+        coefs.push({ m, c });
+        polyStrs.push(`S${i}(x) = ${m.toFixed(6)}x ${c >= 0 ? '+' : '-'} ${Math.abs(c).toFixed(6)}  (for x in [${x[i]}, ${x[i+1]}])`);
+    }
+    return { coefs, polyStrs };
   },
 
-  // --- Dummy Implementations for Complex Systems to allow UI to function ---
-  // (In a real full code block, I would include the full Cholesky/LU logic here)
-  // Assuming the previous Cholesky/LU/Iterative logic is preserved or re-pasted if needed.
-  // For brevity in this final block, I ensure the critical path works.
-  
-  // ... (Rest of NumericalMethods logic from previous interactions is implicitly here) ...
-  
-  // We need to ensure the 'eliminationWithSteps' exists for Direct Systems
-  eliminationWithSteps_NoPivot: (Ain, bin) => {
-      const Ab = Ain.map((r,i)=> r.concat([bin[i]]));
-      const n = Ab.length;
-      const etapas = [];
-      for(let k=0;k<n-1;k++){
-          etapas.push({ Ab: Ab.map(r=>[...r]), pivot: k });
-          if(Math.abs(Ab[k][k])<1e-14) throw new Error("Zero pivot");
-          for(let i=k+1;i<n;i++){
-              const m = Ab[i][k]/Ab[k][k];
-              for(let j=k;j<=n;j++) Ab[i][j] -= m*Ab[k][j];
-          }
-      }
-      return { etapas, U: Ab.map(r=>r.slice(0,n)), bU: Ab.map(r=>r[n]) };
+  spline_solver: (A_in, b_in) => {
+    return gaussianSolve(A_in, b_in);
   },
+
+  quadratic_splines: (x, y) => {
+    const n = x.length - 1;
+    const m = 3 * n;
+    if (n < 1) throw new Error("At least 2 points required for splines.");
+    if (n < 2) throw new Error("At least 3 points required for Quadratic Splines.");
+
+    const A = zeros(m, m);
+    const b = Array(m).fill(0.0);
+    let eq = 0;
+
+    for (let i = 0; i < n; i++) {
+        A[eq][3*i]   = Math.pow(x[i], 2); 
+        A[eq][3*i+1] = x[i]; 
+        A[eq][3*i+2] = 1.0;
+        b[eq] = y[i]; eq++;
+    }
+    
+    A[eq][3*(n-1)]   = Math.pow(x[n], 2); 
+    A[eq][3*(n-1)+1] = x[n]; 
+    A[eq][3*(n-1)+2] = 1.0;
+    b[eq] = y[n]; eq++;
+
+    for (let i = 0; i < n - 1; i++) {
+        const xi1 = x[i+1];
+        A[eq][3*i]   = Math.pow(xi1, 2); 
+        A[eq][3*i+1] = xi1; 
+        A[eq][3*i+2] = 1.0;
+        A[eq][3*(i+1)]   = -Math.pow(xi1, 2); 
+        A[eq][3*(i+1)+1] = -xi1; 
+        A[eq][3*(i+1)+2] = -1.0;
+        b[eq] = 0.0; eq++;
+    }
+    
+    for (let i = 0; i < n - 1; i++) {
+        const xi1 = x[i+1];
+        A[eq][3*i]   = 2*xi1; 
+        A[eq][3*i+1] = 1.0;
+        A[eq][3*(i+1)]   = -2*xi1; 
+        A[eq][3*(i+1)+1] = -1.0;
+        b[eq] = 0.0; eq++;
+    }
+
+    A[eq][0] = 2.0;
+    b[eq] = 0.0; eq++;
+
+    const S = NumericalMethods.spline_solver(A, b);
+    
+    const coefs = [];
+    const polyStrs = [];
+    for(let i=0; i<n; i++) {
+        const [a, b_val, c] = [S[3*i], S[3*i+1], S[3*i+2]];
+        coefs.push({a, b: b_val, c});
+        polyStrs.push(`S${i}(x) = ${a.toFixed(6)}x² ${b_val >= 0 ? '+' : '-'} ${Math.abs(b_val).toFixed(6)}x ${c >= 0 ? '+' : '-'} ${Math.abs(c).toFixed(6)}  (for x in [${x[i]}, ${x[i+1]}])`);
+    }
+    return { coefs, polyStrs };
+  },
+
+  cubic_splines_natural: (x, y) => {
+    const n = x.length - 1;
+    const m = 4 * n;
+    if (n < 1) throw new Error("At least 2 points required for splines.");
+    if (n < 2) throw new Error("At least 3 points required for Cubic Splines.");
+
+    const A = zeros(m, m);
+    const b = Array(m).fill(0.0);
+    let eq = 0;
+
+    for (let i = 0; i < n; i++) {
+        A[eq][4*i]   = Math.pow(x[i], 3); 
+        A[eq][4*i+1] = Math.pow(x[i], 2); 
+        A[eq][4*i+2] = x[i]; 
+        A[eq][4*i+3] = 1.0;
+        b[eq] = y[i]; eq++;
+    }
+    A[eq][4*(n-1)]   = Math.pow(x[n], 3); 
+    A[eq][4*(n-1)+1] = Math.pow(x[n], 2); 
+    A[eq][4*(n-1)+2] = x[n]; 
+    A[eq][4*(n-1)+3] = 1.0;
+    b[eq] = y[n]; eq++;
+
+    for (let i = 0; i < n - 1; i++) {
+        const xi1 = x[i+1];
+        A[eq][4*i]   = Math.pow(xi1, 3); 
+        A[eq][4*i+1] = Math.pow(xi1, 2); 
+        A[eq][4*i+2] = xi1; 
+        A[eq][4*i+3] = 1.0;
+        A[eq][4*(i+1)]   = -Math.pow(xi1, 3); 
+        A[eq][4*(i+1)+1] = -Math.pow(xi1, 2); 
+        A[eq][4*(i+1)+2] = -xi1; 
+        A[eq][4*(i+1)+3] = -1.0;
+        b[eq] = 0.0; eq++;
+    }
+
+    for (let i = 0; i < n - 1; i++) {
+        const xi1 = x[i+1];
+        A[eq][4*i]   = 3*Math.pow(xi1, 2); 
+        A[eq][4*i+1] = 2*xi1; 
+        A[eq][4*i+2] = 1.0;
+        A[eq][4*(i+1)]   = -3*Math.pow(xi1, 2); 
+        A[eq][4*(i+1)+1] = -2*xi1; 
+        A[eq][4*(i+1)+2] = -1.0;
+        b[eq] = 0.0; eq++;
+    }
+
+    for (let i = 0; i < n - 1; i++) {
+        const xi1 = x[i+1];
+        A[eq][4*i]   = 6*xi1; 
+        A[eq][4*i+1] = 2.0;
+        A[eq][4*(i+1)]   = -6*xi1; 
+        A[eq][4*(i+1)+1] = -2.0;
+        b[eq] = 0.0; eq++;
+    }
+
+    A[eq][0] = 6*x[0]; A[eq][1] = 2.0;
+    b[eq] = 0.0; eq++;
+    
+    A[eq][4*(n-1)]   = 6*x[n]; 
+    A[eq][4*(n-1)+1] = 2.0;
+    b[eq] = 0.0; eq++;
+
+    const S = NumericalMethods.spline_solver(A, b);
+    
+    const coefs = [];
+    const polyStrs = [];
+    for(let i=0; i<n; i++) {
+        const [a, b_val, c, d] = [S[4*i], S[4*i+1], S[4*i+2], S[4*i+3]];
+        coefs.push({a, b: b_val, c, d});
+        polyStrs.push(`S${i}(x) = ${a.toFixed(6)}x³ ${b_val >= 0 ? '+' : '-'} ${Math.abs(b_val).toFixed(6)}x² ${c >= 0 ? '+' : '-'} ${Math.abs(c).toFixed(6)}x ${d >= 0 ? '+' : '-'} ${Math.abs(d).toFixed(6)}  (for x in [${x[i]}, ${x[i+1]}])`);
+    }
+    return { coefs, polyStrs };
+  }
+
+}; // Fin del objeto NumericalMethods
+/* ================= (Fin de la Capa de Lógica) ================= */
+
+
+/* ================= History (localStorage) ================= */
+const HIST_KEY = 'nm-lab-history-v3';
+function getHist(){ try{ return JSON.parse(localStorage.getItem(HIST_KEY)||'[]'); }catch{return [];} }
+function setHist(arr){ localStorage.setItem(HIST_KEY, JSON.stringify(arr.slice(0,50))); } // Save max 50 items
+function addHist(rec){ const arr = getHist(); arr.unshift({ id: Date.now(), ...rec }); setHist(arr); renderHistory(); }
+function renderHistory(){
+  const arr = getHist();
+  if(!arr.length){ historyList.innerHTML = `<div class="hint p-3">No runs yet. Your last 50 runs will appear here.</div>`; return; }
+  historyList.innerHTML = '';
+  arr.forEach((r)=>{
+    const wrap = document.createElement('div'); wrap.className = 'rounded-xl border p-3';
+    const when = new Date(r.ts || r.id).toLocaleString();
+    const head = `<div class="flex justify-between items-center">\n            <div><div class="text-sm font-semibold">${r.methodLabel}</div>\n            <div class="hint text-xs">${when}</div></div>\n            <div class="flex gap-2 mt-2"><button class="btn btn-soft py-1 px-3 text-sm" data-act="rerun" data-id="${r.id}">Re-run</button></div>\n          </div>`;
+    const body = document.createElement('div'); body.className = 'mt-2 text-sm';
+    
+    let extra = '';
+    if (r.mode==='root' && r.inputs && r.inputs.fx){ extra = `<div class="mt-1"><span class="hint">f(x) =</span> <span class="code">${esc(r.inputs.fx)}</span></div>`; }
+    else if (r.mode==='direct' && r.inputs && r.inputs.Atext) { extra = `<div class="mt-1"><span class="hint">A[0] =</span> <span class="code">${esc(r.inputs.Atext.split('\n')[0])}...</span></div>`; }
+    else if (r.mode==='iterative' && r.inputs && r.inputs.Atext) { extra = `<div class="mt-1"><span class="hint">A[0] =</span> <span class="code">${esc(r.inputs.Atext.split('\n')[0])}...</span></div>`; }
+    else if (r.mode==='interpolation' && r.inputs && r.inputs.pointsText) { extra = `<div class="mt-1"><span class="hint">Points =</span> <span class="code">${esc(r.inputs.pointsText.split('\n')[0])}...</span></div>`; }
+    
+    body.innerHTML = (r.summaryHTML || '') + extra;
+    wrap.innerHTML = head; wrap.appendChild(body); historyList.appendChild(wrap);
+  });
   
-  // Full Cholesky Implementation for consistency
-  cholesky: (A) => {
-    const n=A.length, L=Array.from({length:n},()=>Array(n).fill({re:0,im:0}));
-    for(let i=0;i<n;i++){
-      for(let j=0;j<=i;j++){
-        let s={re:0,im:0};
-        for(let k=0;k<j;k++) s=Complex.add(s, Complex.mul(L[i][k],L[j][k]));
-        let d = Complex.sub(Complex.fromReal(A[i][j]), s);
-        if(i===j) {
-            if(d.re <= 0 && Math.abs(d.im) < 1e-10) console.warn("Negative diag in Cholesky");
-            L[i][i] = Complex.sqrt(d);
-        } else L[i][j] = Complex.div(d, L[j][j]);
+  // Add re-run listeners
+  historyList.querySelectorAll('button[data-act="rerun"]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const id = Number(btn.getAttribute('data-id'));
+      const rec = getHist().find(x=>x.id===id); if(!rec) return;
+      
+      setMode(rec.mode); // This will set the tab
+      methodSelect.value = rec.method; // This will set the dropdown
+      
+      if (rec.mode==='root'){
+        fxInput.value = rec.inputs.fx;
+        gxInput.value = rec.inputs.gx || '';
+        aInput.value = rec.inputs.a;
+        bInput.value = rec.inputs.b;
+        x0Input.value = rec.inputs.x0;
+        x1Input.value = rec.inputs.x1 || '';
+        tolInput.value = rec.inputs.tol;
+        kmaxInput.value = rec.inputs.kmax;
+        deltaInput.value = rec.inputs.delta || '';
+        nmaxInput.value = rec.inputs.nmax || '';
+        dfInput.value = rec.inputs.df || '';
+        d2fInput.value = rec.inputs.d2f || '';
+        syncVisibility();
+        runRoot();
+      } else if (rec.mode === 'direct') {
+        AInputDirect.value = rec.inputs.Atext;
+        bVecInputDirect.value = rec.inputs.btext;
+        syncVisibility();
+        runDirect();
+      } else if (rec.mode === 'iterative') {
+        AInputIter.value = rec.inputs.Atext;
+        bVecInputIter.value = rec.inputs.btext;
+        x0InputIter.value = rec.inputs.x0text;
+        tolInputIter.value = rec.inputs.tol;
+        nmaxInputIter.value = rec.inputs.nmax;
+        wInputIter.value = rec.inputs.w || 1.5;
+        syncVisibility();
+        runIterative();
+      } else if (rec.mode === 'interpolation') {
+        pointsInput.value = rec.inputs.pointsText;
+        syncVisibility();
+        runInterpolation();
+      }
+      toggleHistory(false);
+    });
+  });
+}
+  function toggleHistory(open){
+    historyDrawer.classList.toggle('open', open);
+    historyDrawer.setAttribute('aria-hidden', open ? 'false' : 'true');
+  }
+  // --- 👇 INICIO DEL NUEVO BLOQUE JAVASCRIPT 👇 ---
+
+  // Control del Modal de Ayuda con "Don't Show Again"
+  const helpBtn = document.getElementById('helpBtn');
+  const closeHelpBtn = document.getElementById('closeHelpBtn');
+  const helpModal = document.getElementById('helpModal');
+  const dontShowCheckbox = document.getElementById('dontShowHelp');
+  function toggleHelp(open) {
+    helpModal.classList.toggle('hidden', !open);
+    helpModal.setAttribute('aria-hidden', open ? 'false' : 'true');
+  }
+
+  // Abrir automáticamente si no está silenciado
+  if (!localStorage.getItem('hideHelpOnLoad')) {
+    toggleHelp(true);
+  }
+
+  helpBtn.addEventListener('click', () => toggleHelp(true));
+
+  closeHelpBtn.addEventListener('click', () => {
+    if (dontShowCheckbox.checked) {
+      localStorage.setItem('hideHelpOnLoad', 'true');
+    }
+    toggleHelp(false);
+  });
+
+  helpModal.addEventListener('click', (e) => {
+    if (e.target === helpModal) {
+      if (dontShowCheckbox.checked) localStorage.setItem('hideHelpOnLoad', 'true');
+      toggleHelp(false);
+    }
+  });
+  // --- 👆 FIN DEL NUEVO BLOQUE JAVASCRIPT ---
+
+  // --- 👇 INICIO DEL NUEVO BLOQUE JAVASCRIPT 👇 ---
+
+  // Control del Modal de Pseudocódigo
+  const pseudoBtn = document.getElementById('pseudoBtn');
+  const closePseudoBtn = document.getElementById('closePseudoBtn');
+  const pseudoModal = document.getElementById('pseudoModal');
+  const pseudoTitle = document.getElementById('pseudoTitle');
+  const pseudoBody = document.getElementById('pseudoBody');
+
+  function showPseudo() {
+    const m = methodSelect.value;
+    const pseudoLines = ALL_PSEUDO[m];
+
+    pseudoTitle.innerText = `${methodSelect.options[methodSelect.selectedIndex].text} - Pseudocode`;
+
+    if (pseudoLines && pseudoLines.length) {
+      pseudoBody.innerHTML = pseudoLines.join('\n');
+    } else {
+      pseudoBody.innerHTML = 'Pseudocode for this method is not yet available.';
+    }
+
+    pseudoModal.classList.remove('hidden');
+    pseudoModal.setAttribute('aria-hidden', 'false');
+  }
+
+  function closePseudo() {
+    pseudoModal.classList.add('hidden');
+    pseudoModal.setAttribute('aria-hidden', 'true');
+  }
+
+  pseudoBtn.addEventListener('click', showPseudo);
+  closePseudoBtn.addEventListener('click', closePseudo);
+  pseudoModal.addEventListener('click', (e) => {
+    if (e.target === pseudoModal) closePseudo();
+  });
+  // --- 👆 FIN DEL NUEVO BLOQUE JAVASCRIPT ---
+  historyBtn.addEventListener('click', ()=>toggleHistory(true));
+closeHistBtn.addEventListener('click', ()=>toggleHistory(false));
+clearHistBtn.addEventListener('click', ()=>{
+  // NOTA: Se eliminó window.confirm() porque no es fiable en este entorno.
+  // La acción de limpiar el historial ahora es inmediata.
+  localStorage.removeItem(HIST_KEY); 
+  renderHistory(); 
+});
+
+
+function runRoot(){
+  // Clear previous root results
+  setHTML(summaryBoxRoot, '');
+  setHTML(iterTableRoot, '');
+  setHTML(bracketBox, '');
+  Plotly.purge(plotDiv);
+  const alertBox = getActiveAlertsBox();
+
+  let f, g = null, fprime = null, f2prime = null;
+  let a, b, x0, x1, tol, kmax, delta, nmax;
+  const m = methodSelect.value;
+
+  try {
+    const displayEl = document.getElementById('functionDisplayRoot');
+    if (displayEl) {
+      const fxStr = fxInput.value.trim();
+      if (fxStr) {
+        const latexStr = fxStr
+          .replace(/\*\*/g, '^')
+          .replace(/\*/g, ' \\cdot ');
+
+        displayEl.innerHTML = `$$ f(x) = ${latexStr} $$`;
+
+        if (window.MathJax && window.MathJax.typesetPromise) {
+          window.MathJax.typesetPromise([displayEl]);
+        }
+      } else {
+        displayEl.innerHTML = '';
       }
     }
-    return { L };
-  },
-  
-  // Iterative
-  jacobi: (A, b, x0, tol, nmax) => {
-      const n=A.length;
-      let x=[...x0], steps=[];
-      for(let k=1; k<=nmax; k++) {
-          let xNew = new Array(n);
-          for(let i=0; i<n; i++) {
-              let sum = 0;
-              for(let j=0; j<n; j++) if(j!==i) sum += A[i][j]*x[j];
-              xNew[i] = (b[i] - sum)/A[i][i];
-          }
-          const err = Math.sqrt(xNew.reduce((s,v,i)=>(s+(v-x[i])**2),0));
-          steps.push({k, x: xNew, e: err});
-          x = xNew;
-          if(err < tol) break;
-      }
-      return { x, steps, k: steps.length };
-  },
-  // ... (Gauss-Seidel / SOR logic mirrors Jacobi) ...
-   gauss_seidel: (A, b, x0, tol, nmax) => {
-      const n=A.length;
-      let x=[...x0], steps=[];
-      for(let k=1; k<=nmax; k++) {
-          let xOld = [...x];
-          for(let i=0; i<n; i++) {
-              let sum = 0;
-              for(let j=0; j<n; j++) if(j!==i) sum += A[i][j]*x[j];
-              x[i] = (b[i] - sum)/A[i][i];
-          }
-          const err = Math.sqrt(x.reduce((s,v,i)=>(s+(v-xOld[i])**2),0));
-          steps.push({k, x: [...x], e: err});
-          if(err < tol) break;
-      }
-      return { x, steps, k: steps.length };
-  }
-};
+    // 1. Validate all inputs first
+    const vfx = validateExprInput('f(x)', fxInput.value);
+    if(!vfx.ok){ setHTML(alertBox, msgCard('err','Error: Invalid Input', vfx.msg)); return; }
+    f=buildFn(vfx.expr);
+    
+    if (m==='fixedPoint'){ const vg=validateExprInput('g(x)', gxInput.value); if(!vg.ok){ setHTML(alertBox, msgCard('err','Error: Invalid Input', vg.msg)); return; } g=buildFn(vg.expr); }
+    if (m==='newton' || m==='multiple'){ if (dfInput.value.trim()){ const vd = validateExprInput("f'(x)", dfInput.value); if(vd.ok) { fprime = buildFn(vd.expr); } else { appendHTML(alertBox, msgCard('warn',"Alert: f' ignored", vd.msg)); } } }
+    if (m==='multiple'){ if (d2fInput.value.trim()){ const v2 = validateExprInput("f''(x)", d2fInput.value); if(v2.ok) { f2prime = buildFn(v2.expr); } else { appendHTML(alertBox, msgCard('warn',"Alert: f'' ignored", vd.msg)); } } }
 
+    const va = validateNumber('a', aInput.value); if(!va.ok) return setHTML(alertBox, msgCard('err','Error: Invalid Input', va.msg));
+    const vb = validateNumber('b', bInput.value); if(!vb.ok) return setHTML(alertBox, msgCard('err','Error: Invalid Input', vb.msg));
+    a=va.value; b=vb.value;
+    
+    const vInt = validateInterval(a,b); if(!vInt.ok) return setHTML(alertBox, msgCard('err','Error: Invalid Input', vInt.msg));
+    
+    const vx0 = validateNumber('x0', x0Input.value); if(!vx0.ok) return setHTML(alertBox, msgCard('err','Error: Invalid Input', vx0.msg));
+    x0=vx0.value;
+    x1 = (m==='secant') ? (validateNumber('x1', x1Input.value).value) : null;
+    if (m==='secant' && x1 === null) { setHTML(alertBox, msgCard('err','Error: Invalid Input', "x1 is required for Secant method.")); return; }
+    const vtol = validateNumber('Tolerance', tolInput.value, {gt:0}); if(!vtol.ok) { appendHTML(alertBox, msgCard('err','Input Error', "Tolerance must be a number > 0.")); return; }
+    const vkmax = validateNumber('Max iterations', kmaxInput.value, {gt:0}); if(!vkmax.ok || !Number.isInteger(vkmax.value)) { appendHTML(alertBox, msgCard('err','Input Error', "Max Iterations (k) must be a positive integer.")); return; }
+    tol=vtol.value; kmax=vkmax.value;
+    delta = (m==='incremental') ? (validateNumber('Delta', deltaInput.value).value) : null;
+    if (m==='incremental' && delta === null) { setHTML(alertBox, msgCard('err','Error: Invalid Input', "Delta is required for Incremental Search.")); return; }
+    nmax  = (m==='incremental') ? (validateNumber('Max steps', nmaxInput.value, {gt:0}).value) : null;
+    if (m==='incremental' && nmax === null) { setHTML(alertBox, msgCard('err','Error: Invalid Input', "Max steps is required for Incremental Search.")); return; }
 
-/* ================= LOGIC & UI WIRING ================= */
-function runRoot() {
-  const m = methodSelect.value;
-  const f = buildFn(fxInput.value);
-  const alertBox = alertsBoxRoot;
-  let res;
-  
-  // Display Math
-  document.getElementById('functionDisplayRoot').innerHTML = `$$ f(x) = ${fxInput.value} $$`;
-  if(window.MathJax) MathJax.typesetPromise([document.getElementById('functionDisplayRoot')]);
+    // 2. Run pre-check and plot
+    const chk = precheckRoot(f, a, b, m);
+    if (!chk.ok && !chk.msg.includes("Theorem Violation")) {
+        // Show generic issues such as undefined regions
+        appendHTML(alertBox, msgCard('warn','Alert: Precondition Warning', chk.msg));
+    }
+    renderBracketSuggestions(chk.flips);
+    plotFx(f,a,b,[], 'iter'); // Always plot to help students visualize
 
-  // Validation
-  const a = Number(aInput.value), b = Number(bInput.value);
-  try {
-      if((m==='bisection' || m==='falsePosition')) {
-         const fa = f(a), fb = f(b);
-         if(fa*fb >= 0) {
-             setHTML(alertBox, msgCard('warn', 'Theorem Violation', `f(a)=${fmt(fa)} and f(b)=${fmt(fb)} have same sign.`));
-             return;
-         }
-      }
-  } catch(e) { console.log(e); }
-
-  // Execution
-  if(m==='bisection') res = NumericalMethods.bisection(f, a, b, Number(tolInput.value), Number(kmaxInput.value));
-  else if(m==='newton_root') res = NumericalMethods.newton(f, Number(x0Input.value), Number(tolInput.value), Number(kmaxInput.value), buildFn(dfInput.value));
-  else if(m==='incremental') res = NumericalMethods.incrementalSearch(f, Number(x0Input.value), Number(deltaInput.value), Number(nmaxInput.value));
-  // ... others
-  
-  if(res) {
-      if(res.error) setHTML(alertBox, msgCard('warn', 'Error', res.error));
-      else if(res.msg) setHTML(alertBox, msgCard('warn', 'Info', res.msg));
-      else if(res.root !== undefined) {
-        setHTML(alertBox, msgCard('ok', 'Success', `Root found: ${fmt(res.root)}`));
-        if(res.steps) {
-           const headers = Object.keys(res.steps[0]);
-           const rows = res.steps.map(s => Object.values(s).map(v => fmt(v)));
-           renderTable(headers, rows, iterTableRoot);
+    // Specific validation for Bisection / False Position
+    if (m === 'bisection' || m === 'falsePosition') {
+      try {
+        const fa = f(a);
+        const fb = f(b);
+        if (fa * fb >= 0) {
+          const msg = `Theorem Violation: Method requires f(a) and f(b) to have opposite signs.<br>
+• f(a) = f(${fmt(a, 4)}) = ${fmt(fa, 4)}<br>
+• f(b) = f(${fmt(b, 4)}) = ${fmt(fb, 4)}<br>
+• f(a) * f(b) = ${fmt(fa * fb, 4)} (which is ≥ 0)`;
+          appendHTML(alertBox, msgCard('warn', 'Theorem Violation', msg));
+          return; // Stop execution if theorem violated
         }
+      } catch (e) {
+        // Fall through to main catch block if evaluation fails
       }
+    }
+
+    // 3. Execute method
+    let headers=[], rows=[], itXs=[], summaryHTML='';
+    let label = methodSelect.options[methodSelect.selectedIndex].text;
+    let result;
+
+    if (m==='incremental'){
+      result = NumericalMethods.incrementalSearch(f,x0,delta,nmax);
+      if(!result.bracket){ appendHTML(alertBox, msgCard('warn','Alert: No Bracket Found', [result.msg])); return; }
+      setHTML(alertBox, msgCard('success','Execution Successful',[`Bracket found in [${fmt(result.bracket[0])}, ${fmt(result.bracket[1])}]`]));
+      summaryHTML = `<div><b>Bracket:</b> [${fmt(result.bracket[0])}, ${fmt(result.bracket[1])}]</div>`;
+      setHTML(summaryBoxRoot, summaryHTML); // Se deja un resumen simple en el panel
+      plotFx(f,a,b,[result.bracket[0], result.bracket[1]], 'bracket');
+      headers=["Note","a","b"]; 
+      rows=[["Found", fmt(result.bracket[0]), fmt(result.bracket[1])]]; // Formateo simple
+    }
+    else if (m==='bisection'){
+      result = NumericalMethods.bisection(f,a,b,tol,kmax);
+      if(result.error){
+        const errorType = result.error.includes("Theorem") ? 'warn' : 'err';
+        const errorTitle = errorType === 'warn' ? 'Alert: Theorem Violation' : 'Error: Execution Failed';
+        appendHTML(alertBox, msgCard(errorType, errorTitle, [result.error])); 
+        return;
+      }
+      headers=["k","a","b","xm","f(xm)","|dx|","(b-a)/2"]; 
+      rows = result.steps.map(s => [s.k, fmt(s.a), fmt(s.b), fmt(s.xm), fmt(s.fm, 3, 'sci'), fmt(s.errX, 3, 'sci'), fmt(s.errB, 3, 'sci')]);
+      itXs = result.steps.map(s => s.xm);
+    }
+    else if (m==='falsePosition'){
+      result = NumericalMethods.falsePosition(f,a,b,tol,kmax);
+      if(result.error){
+        const errorType = result.error.includes("Theorem") ? 'warn' : 'err';
+        const errorTitle = errorType === 'warn' ? 'Alert: Theorem Violation' : 'Error: Execution Failed';
+        appendHTML(alertBox, msgCard(errorType, errorTitle, [result.error])); 
+        return;
+      }
+      headers=["k","a","b","xm","f(xm)","|dx|"]; 
+      rows = result.steps.map(s => [s.k, fmt(s.a), fmt(s.b), fmt(s.xm), fmt(s.fm, 3, 'sci'), fmt(s.err, 3, 'sci')]);
+      itXs = result.steps.map(s => s.xm);
+    }
+    else if (m==='fixedPoint'){
+      result = NumericalMethods.fixedPoint(g,a,b,x0,tol,kmax);
+      if(result.error){
+        const errorType = result.error.includes("Theorem") ? 'warn' : 'err';
+        const errorTitle = errorType === 'warn' ? 'Alert: Theorem Violation' : 'Error: Execution Failed';
+        appendHTML(alertBox, msgCard(errorType, errorTitle, [result.error])); 
+        return;
+      }
+      headers=["k","x_k","g(x_k)","|dx|"]; 
+      rows = result.steps.map(s => [s.k, fmt(s.x0), fmt(s.x1), fmt(s.err, 3, 'sci')]);
+      itXs = result.steps.map(s => s.x1);
+    }
+    else if (m==='newton_root'){
+      result = NumericalMethods.newton(f,x0,tol,kmax,a,b,fprime); 
+      if(result.error){
+        const errorType = result.error.includes("Theorem") ? 'warn' : 'err';
+        const errorTitle = errorType === 'warn' ? 'Alert: Theorem Violation' : 'Error: Execution Failed';
+        appendHTML(alertBox, msgCard(errorType, errorTitle, [result.error])); 
+        return;
+      }
+      headers=["k","x_k","f(x_k)","f'(x_k)","x_{k+1}","|dx|"]; 
+      rows = result.steps.map(s => [s.k, fmt(s.x0), fmt(s.fx, 3, 'sci'), fmt(s.fp), fmt(s.x1), fmt(s.err, 3, 'sci')]);
+      itXs = result.steps.map(s => s.x1);
+    }
+    else if (m==='secant'){
+      result = NumericalMethods.secant(f,x0,x1,tol,kmax,a,b); 
+      if(result.error){
+        const errorType = result.error.includes("Theorem") ? 'warn' : 'err';
+        const errorTitle = errorType === 'warn' ? 'Alert: Theorem Violation' : 'Error: Execution Failed';
+        appendHTML(alertBox, msgCard(errorType, errorTitle, [result.error])); 
+        return;
+      }
+      headers=["k","x_{k-1}","x_k","x_{k+1}","f(x_{k+1})","|dx|"]; 
+      rows = result.steps.map(s => [s.k, fmt(s.x0), fmt(s.x1), fmt(s.x2), fmt(s.fm, 3, 'sci'), fmt(s.err, 3, 'sci')]);
+      itXs = result.steps.map(s => s.x2);
+    }
+    else if (m==='multiple'){
+      result = NumericalMethods.modifiedNewton(f,x0,tol,kmax,a,b,fprime,f2prime); 
+      if(result.error){
+        const errorType = result.error.includes("Theorem") ? 'warn' : 'err';
+        const errorTitle = errorType === 'warn' ? 'Alert: Theorem Violation' : 'Error: Execution Failed';
+        appendHTML(alertBox, msgCard(errorType, errorTitle, [result.error])); 
+        return;
+      }
+      headers=["k","x_k","f","f'","f''","x_{k+1}","|dx|"]; 
+      rows = result.steps.map(s => [s.k, fmt(s.x0), fmt(s.fx, 3, 'sci'), fmt(s.fp), fmt(s.fpp), fmt(s.x1), fmt(s.err, 3, 'sci')]);
+      itXs = result.steps.map(s => s.x1);
+    }
+
+    // 4. Render results
+    if(m !== 'incremental' && result.root !== undefined){
+      summaryHTML = `<div><b>Root:</b> ${fmt(result.root)} &nbsp; <b>Iters:</b> ${result.k}</div>`;
+      setHTML(alertBox, msgCard('success','Execution Successful',[`Root approximated ≈ ${fmt(result.root)}`,`Iterations: ${result.k}`]));
+      setHTML(summaryBoxRoot, summaryHTML); // Se deja un resumen simple en el panel
+      plotFx(f,a,b,itXs,'x_k');
+    }
+    if(headers.length) { renderTable(headers, rows, iterTableRoot); tableBoxRoot.classList.remove('hidden'); } 
+    else { tableBoxRoot.classList.add('hidden'); }
+
+    // 5. Add to history
+    addHist({ 
+      ts: new Date().toISOString(), 
+      mode: 'root', 
+      method: m, 
+      methodLabel: label, 
+      inputs: { fx: fxInput.value, gx: gxInput.value, a, b, x0, x1, tol, kmax, delta, nmax, df: dfInput.value, d2f: d2fInput.value }, 
+      summaryHTML 
+    });
+
+  }catch(e){
+    const errorType = e.message.includes("Theorem") ? 'warn' : 'err';
+    appendHTML(alertBox, msgCard(errorType,'Error: Runtime Exception', e.message)); 
   }
 }
 
 function runDirect() {
-    // ... (Simplified wiring for Direct) ...
-    // Uses NumericalMethods.cholesky / lu_gaussian etc.
-    // Displays result in resultsDirect div
+  setHTML(summaryDirect, '');
+  setHTML(resultsDirect, '');
+  stepsBox.classList.add('hidden'); // Ocultar el visor de pasos al inicio
+  const alertBox = getActiveAlertsBox();
+  
+  try {
+    const A = parseMatrix(AInputDirect.value);
+    const b = parseVector(bVecInputDirect.value, A.length);
+    const method = methodSelect.value;
+    const methodLabel = methodSelect.options[methodSelect.selectedIndex].text;
+    
+    let result, x, html = '';
+    
+    if (method.startsWith('gauss_')) {
+        // --- GAUSSIAN ELIMINATION (con visor de pasos) ---
+        if (method === 'gauss_simple') {
+            result = NumericalMethods.eliminationWithSteps_NoPivot(A, b);
+        } else if (method === 'gauss_partial') {
+            result = NumericalMethods.eliminationWithSteps_Partial(A, b);
+        } else if (method === 'gauss_total') {
+            result = NumericalMethods.eliminationWithSteps_Total(A, b);
+        }
+        
+        // Solución por sustitución regresiva
+        let y = backwardSubstitution(result.U, result.bU);
+        x = Array(A.length).fill(0.0);
+        
+        // Reordenar solución si hay pivoteo total
+        if (result.colPerm) {
+            for(let j=0; j<A.length; j++) x[result.colPerm[j]] = y[j];
+        } else {
+            x = y;
+        }
+
+        html += vectorToHTML(x, 'Solution x:');
+        setHTML(resultsDirect, html);
+        
+        // Configurar el visor de pasos
+        stepsBox.classList.remove('hidden');
+        let idx = 0, E = result.etapas;
+        function paint(){ 
+            stepMatrix.innerHTML = renderAugmentedMatrixHTML(E[idx].Ab, E[idx].pivot); 
+            stepIndicator.innerHTML = `Step ${idx+1} / ${E.length}`;
+        }
+        prevStepBtn.onclick = ()=>{ idx = Math.max(0, idx-1); paint(); };
+        nextStepBtn.onclick = ()=>{ idx = Math.min(E.length-1, idx+1); paint(); };
+        paint(); // Mostrar el primer paso
+
+        // Mostrar swaps
+        if (result.swaps && result.swaps.length > 0) {
+            result.swaps.forEach(s => {
+                const msg = s.type === 'row' ? `Row swap r${s.a+1} ↔ r${s.b+1}` : `Column swap c${s.a+1} ↔ c${s.b+1}`;
+                appendHTML(summaryDirect, `<span class="badge info">${msg}</span> `);
+            });
+        }
+        
+    } else {
+        // --- LU FACTORIZATION (muestra L, U, P) ---
+        let L, U, P, b_perm;
+        
+        if (method === 'lu_gaussian') {
+            result = NumericalMethods.lu_gaussian(A);
+            L = result.L; U = result.U;
+            const y = forwardSubstitution(L, b);
+            x = backwardSubstitution(U, y);
+        } else if (method === 'lu_partial_pivot') {
+            result = NumericalMethods.lu_partial_pivot(A);
+            L = result.L; U = result.U; P = result.P;
+            b_perm = applyPermutation(P, b);
+            const y = forwardSubstitution(L, b_perm);
+            x = backwardSubstitution(U, y);
+        } else if (method === 'doolittle') {
+            result = NumericalMethods.doolittle(A);
+            L = result.L; U = result.U;
+            const y = forwardSubstitution(L, b);
+            x = backwardSubstitution(U, y);
+        } else if (method === 'crout') {
+            result = NumericalMethods.crout(A);
+            L = result.L; U = result.U;
+            const y = forwardSubstitution(L, b);
+            x = backwardSubstitution(U, y);
+        } else if (method === 'cholesky') {
+            result = NumericalMethods.cholesky(A);
+            L = result.L;
+            const y = complexForwardSubstitution(L, b.map(Complex.fromReal));
+
+            const LT = zeros(A.length, A.length).map(r => r.map(Complex.fromReal));
+            for(let i=0; i<A.length; i++) {
+                for(let j=0; j<A.length; j++) {
+                    LT[i][j] = { re: L[j][i].re, im: -L[j][i].im }; // Conjugate Transpose
+                }
+            }
+            x = complexBackwardSubstitution(LT, y).map(c => c.re);
+        }
+        
+        // Display results
+        html += '<h3>Factorization Results</h3>';
+        if (result.L) html += matrixToHTML(result.L, 'L:');
+        if (result.U) html += matrixToHTML(result.U, 'U:');
+        if (result.P) html += matrixToHTML(result.P, 'P (Permutation):');
+        html += vectorToHTML(x, 'Solution x:');
+        setHTML(resultsDirect, html);
+    }
+    
+    setHTML(alertBox, msgCard('success', 'Execution Successful', `Method: ${methodLabel}`));
+    
+    // Add to history
+    addHist({
+        ts: new Date().toISOString(),
+        mode: 'direct',
+        method: method,
+        methodLabel: methodLabel,
+        inputs: { Atext: AInputDirect.value, btext: bVecInputDirect.value },
+        summaryHTML: `<div><b>Solution:</b> [${x.map(v=>fmt(v,3)).join(', ')}]</div>`
+    });
+    
+  } catch (e) {
+    const errorType = e.message.includes("Theorem") ? 'warn' : 'err';
+    const errorTitle = errorType === 'warn' ? 'Alert: Theorem Violation' : 'Error: Execution Failed';
+    setHTML(alertBox, msgCard(errorType, errorTitle, e.message));
+  }
 }
 
 function runIterative() {
-    // ... (Simplified wiring for Iterative) ...
-    // Uses NumericalMethods.jacobi etc.
+  setHTML(summaryIter, '');
+  setHTML(spectralRadiusBox, '');
+  setHTML(iterTableIterative, '');
+  const alertBox = getActiveAlertsBox();
+  
+  try {
+    const A = parseMatrix(AInputIter.value);
+    const b = parseVector(bVecInputIter.value, A.length);
+    const x0 = parseVector(x0InputIter.value, A.length);
+    const tol = Number(tolInputIter.value);
+    const nmax = Number(nmaxInputIter.value);
+    const w = Number(wInputIter.value);
+    const method = methodSelect.value;
+    const methodLabel = methodSelect.options[methodSelect.selectedIndex].text;
+    // Validate relaxation factor when running SOR
+    if (method === 'sor') {
+      if (w <= 0 || w >= 2) {
+        appendHTML(alertBox, msgCard('warn', 'Input Warning', 'Theorem Violation: The relaxation factor $\\omega$ (omega) must be in the interval (0, 2).'));
+        return;
+      }
+    }
+
+    let result;
+    
+    // Execute selected method
+    if (method === 'jacobi') {
+        result = NumericalMethods.jacobi(A, b, x0, tol, nmax);
+    } else if (method === 'gauss_seidel') {
+        result = NumericalMethods.gauss_seidel(A, b, x0, tol, nmax);
+    } else if (method === 'sor') {
+        result = NumericalMethods.sor(A, b, x0, w, tol, nmax);
+    }
+    
+    const { x, T, C, steps, k } = result;
+    const radius = spectralRadius(T);
+    
+    // Display summary
+    setHTML(alertBox, msgCard('success', 'Execution Successful', `Method: ${methodLabel}. Found solution in ${k} iterations.`));
+    
+    // Display spectral radius and convergence
+    let radiusMsg = `Spectral Radius (ρ(T)): ${radius.toFixed(6)}`;
+    if (radius < 1) {
+        setHTML(spectralRadiusBox, msgCard('ok', 'Theorem Check: Converged', radiusMsg + ' (ρ(T) < 1).'));
+    } else {
+        setHTML(spectralRadiusBox, msgCard('warn', 'Alert: Convergence NOT Guaranteed', radiusMsg + ' (ρ(T) ≥ 1). Result may be incorrect.'));
+    }
+    
+    // Display iteration table
+    const n = A.length;
+    const headers = ['k', ...Array.from({length: n}, (_, i) => `x${i}`), 'Error'];
+    // Formatear las filas desde los datos crudos
+    const rows = steps.map(s => [
+        s.k, 
+        ...s.x.map(v => fmt(v, 6)), 
+        s.e === null ? 'N/A' : s.e.toExponential(2)
+    ]);
+    renderTable(headers, rows, iterTableIterative);
+    setHTML(summaryIter, vectorToHTML(x, 'Final Solution x:'));
+    
+    // Add to history
+    addHist({
+        ts: new Date().toISOString(),
+        mode: 'iterative',
+        method: method,
+        methodLabel: methodLabel,
+        inputs: { Atext: AInputIter.value, btext: bVecInputIter.value, x0text: x0InputIter.value, tol, nmax, w },
+        summaryHTML: `<div><b>Solution:</b> [${x.map(v=>fmt(v,3)).join(', ')}]</div>`
+    });
+    
+  } catch (e) {
+    const errorType = e.message.includes("Theorem") ? 'warn' : 'err';
+    const errorTitle = errorType === 'warn' ? 'Alert: Theorem Violation' : 'Error: Execution Failed';
+    setHTML(alertBox, msgCard(errorType, errorTitle, e.message));
+  }
 }
 
 function runInterpolation() {
-    const {x, y} = parsePoints(pointsInput.value);
-    // Check duplicates
-    if(new Set(x).size !== x.length) { setHTML(alertsInter, msgCard('err', 'Input Error', 'Duplicate X values found.')); return; }
+  setHTML(summaryInter, '');
+  setHTML(resultsInter, '');
+  Plotly.purge(plotInter);
+  const alertBox = getActiveAlertsBox();
+  
+    try {
+      const { x, y } = parsePoints(pointsInput.value);
+      if (x.length < 2) throw new Error("At least 2 data points are required.");
+      const xSet = new Set(x);
+      if (xSet.size !== x.length) {
+        throw new Error("Input Error: X-values must be unique. Duplicate X-values found.");
+      }
+
+      const method = methodSelect.value;
+    const methodLabel = methodSelect.options[methodSelect.selectedIndex].text;
+    let resultHtml = '';
+    let summaryHTML = '';
     
-    // Sort
-    const pts = x.map((v,i)=>({x:v, y:y[i]})).sort((a,b)=>a.x-b.x);
-    const sx = pts.map(p=>p.x), sy = pts.map(p=>p.y);
-    
-    const m = methodSelect.value;
-    let res;
-    if(m==='vandermonde') res = NumericalMethods.vandermonde(sx, sy);
-    else if(m==='linear_splines' || m==='spline_linear') res = NumericalMethods.linear_splines(sx, sy); // Map to correct key
-    
-    if(res) {
-        setHTML(alertsInter, msgCard('ok', 'Success', 'Interpolation computed.'));
-        if(res.polyStr) setHTML(resultsInter, `<div class="code">${res.polyStr}</div>`);
-        if(res.polyStrs) setHTML(resultsInter, `<div class="code">${res.polyStrs.join('<br>')}</div>`);
-        
-        // Plotting
-        plotPoly(m, sx, sy, res);
+    // Execute selected method
+    if (method === 'vandermonde') {
+        if (x.length > 10) {
+            appendHTML(alertBox, msgCard('warn', 'Alert: Method Warning', 'Vandermonde is numerically unstable for many points (n > 10). Results may be inaccurate. Consider using Newton or Splines.'));
+        }
+        const { V, a, polyStr } = NumericalMethods.vandermonde(x, y);
+        resultHtml += matrixToHTML(V, 'Vandermonde Matrix (V):');
+        resultHtml += vectorToHTML(a, 'Coefficients a (from Va = y):');
+        resultHtml += `<h4>Polynomial P(x):</h4><div class="code">${polyStr}</div>`;
+        plotPoly('vandermonde', x, y, { coeffs: a });
+        summaryHTML = `<div><b>Poly:</b> ${polyStr.substring(0, 20)}...</div>`;
+    } else if (method === 'newton_interp') {
+        const { table, coeffs, polyStr } = NumericalMethods.newton_divided_differences(x, y);
+        resultHtml += '<h4>Divided Differences Table (Diagonal Coefficients):</h4>'
+        resultHtml += `<div class="table-wrapper rounded-xl border border-gray-200"><table class="table"><tbody>${
+            coeffs.map((coeff, i) => `<tr><td class="num">${fmt(coeff)}</td></tr>`).join('')
+        }</tbody></table></div>`;
+        resultHtml += `<h4>Polynomial P(x) (Newton Form):</h4><div class="code">${polyStr}</div>`;
+        plotPoly('newton', x, y, { coeffs });
+        summaryHTML = `<div><b>Coeffs:</b> [${coeffs.map(v=>fmt(v,2)).join(', ')}]</div>`;
+    } else if (method === 'lagrange') {
+        const { polyStr } = NumericalMethods.lagrange(x, y);
+        resultHtml += `<h4>Polynomial P(x) (Lagrange Form):</h4><div class="code">${polyStr}</div>`;
+        plotPoly('lagrange', x, y);
+        summaryHTML = `<div><b>Points:</b> ${x.length}</div>`;
+    } else if (method === 'spline_linear') {
+        const { coefs, polyStrs } = NumericalMethods.linear_splines(x, y);
+        resultHtml += '<h4>Linear Splines (Sᵢ(x) = mx + c):</h4>';
+        resultHtml += `<div class="matrix-display">${polyStrs.join('\n')}</div>`;
+        plotSpline('spline_linear', coefs, x, y);
+        summaryHTML = `<div><b>Intervals:</b> ${coefs.length}</div>`;
+    } else if (method === 'spline_quadratic') {
+        if (x.length < 3) throw new Error("At least 3 points are required for Quadratic Splines.");
+        const { coefs, polyStrs } = NumericalMethods.quadratic_splines(x, y);
+        resultHtml += '<h4>Quadratic Splines (Sᵢ(x) = ax² + bx + c):</h4>';
+        resultHtml += `<div class="matrix-display">${polyStrs.join('\n')}</div>`;
+        plotSpline('spline_quadratic', coefs, x, y);
+        summaryHTML = `<div><b>Intervals:</b> ${coefs.length}</div>`;
+    } else if (method === 'spline_cubic') {
+        if (x.length < 3) throw new Error("At least 3 points are required for Cubic Splines.");
+        const { coefs, polyStrs } = NumericalMethods.cubic_splines_natural(x, y);
+        resultHtml += '<h4>Cubic Splines (Natural) (Sᵢ(x) = ax³ + ...):</h4>';
+        resultHtml += `<div class="matrix-display">${polyStrs.join('\n')}</div>`;
+        plotSpline('spline_cubic', coefs, x, y);
+        summaryHTML = `<div><b>Intervals:</b> ${coefs.length}</div>`;
     }
+    
+    // Display results
+    setHTML(alertBox, msgCard('success', 'Execution Successful', `Method: ${methodLabel}`));
+    setHTML(resultsInter, resultHtml);
+    
+    // Add to history
+    addHist({
+        ts: new Date().toISOString(),
+        mode: 'interpolation',
+        method: method,
+        methodLabel: methodLabel,
+        inputs: { pointsText: pointsInput.value },
+        summaryHTML: summaryHTML
+    });
+    
+  } catch (e) {
+    const errorType = e.message.includes("Theorem") ? 'warn' : 'err';
+    const errorTitle = errorType === 'warn' ? 'Alert: Theorem Violation' : 'Error: Execution Failed';
+    setHTML(alertBox, msgCard(errorType, errorTitle, e.message));
+  }
 }
 
 function runGrapher() {
-    // ... (Implementation from previous prompt) ...
+    gAlerts.innerHTML = '';
+    try {
+        const expr = gfxInput.value;
+        const fn = buildFn(expr); // Usamos tu helper existente
+        const a = Number(gStartInput.value);
+        const b = Number(gEndInput.value);
+
+        if (isNaN(a) || isNaN(b) || a >= b) throw new Error("Invalid interval [a, b]. Make sure a < b.");
+        // Generar puntos
+        const xs = linspace(a, b, 500);
+        const ys = xs.map(x => {
+            try { return fn(x); } catch { return NaN; }
+        });
+        // Plotear con Plotly
+        const trace = {
+            x: xs, y: ys, type: 'scatter', mode: 'lines', name: 'f(x)',
+            line: { color: '#7c3aed', width: 2 }
+        };
+        
+        const layout = {
+            title: `Graph of: ${expr}`,
+            xaxis: { title: 'x' },
+            yaxis: { title: 'f(x)' },
+            margin: { l: 40, r: 20, t: 40, b: 40 }
+        };
+        
+        Plotly.newPlot('grapherPlot', [trace], layout, { responsive: true });
+        
+    } catch (e) {
+        gAlerts.innerHTML = msgCard('err', 'Plot Error', e.message);
+    }
 }
 
+/* ================= UI Mode & Visibility Control ================= */
 
-/* ================= UI MANAGEMENT ================= */
-function setMode(mode) {
-  appMode = mode;
-  // Toggle Panels
-  [rootPanel, directSystemPanel, iterativeSystemPanel, interpolationPanel, grapherPanel].forEach(p => p.classList.add('hidden'));
-  if(mode==='root') rootPanel.classList.remove('hidden');
-  else if(mode==='direct') directSystemPanel.classList.remove('hidden');
-  else if(mode==='iterative') iterativeSystemPanel.classList.remove('hidden');
-  else if(mode==='interpolation') interpolationPanel.classList.remove('hidden');
-  else if(mode==='grapher') grapherPanel.classList.remove('hidden');
-  
-  // Toggle Controls
-  const isGrapher = mode === 'grapher';
-  methodControls.classList.toggle('hidden', isGrapher);
-  guideBox.classList.toggle('hidden', isGrapher);
-  document.getElementById('pseudoBtn').parentElement.classList.toggle('hidden', isGrapher);
-  
-  // Populate Method Select
-  if(!isGrapher) {
-    const list = METHODS[mode] || [];
-    methodSelect.innerHTML = list.map(m => `<option value="${m.value}">${m.label}</option>`).join('');
-    showGuide();
-    // Trigger syncVisibility manually to set defaults
-    syncVisibility();
+// Populates the method dropdown based on the active category
+function populateMethodsFor(mode) {
+  const list = METHODS[mode] || [];
+  methodSelect.innerHTML = '';
+  for (const m of list) {
+    const opt = document.createElement('option');
+    opt.value = m.value; opt.textContent = m.label;
+    methodSelect.appendChild(opt);
   }
-  
-  clearAllAlerts();
-  clearAllOutputs();
+  showGuide();
 }
 
+// Shows the guide text for the currently selected method
 function showGuide() {
   const m = methodSelect.value;
   const g = ALL_GUIDES[m];
-  if(g) {
-      let body = Array.isArray(g.body) ? g.body.join('<br>') : g.body;
-      body = body.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-      guideSummary.innerHTML = `<strong>${g.title}</strong> (Click to expand)`;
-      guideBody.innerHTML = `<p class="hint">${body}</p>`;
-      if(window.MathJax) MathJax.typesetPromise([guideBox]);
+  const detailsEl = document.getElementById('guideBox');
+  const summaryEl = document.getElementById('guideSummary');
+  const bodyEl = document.getElementById('guideBody');
+
+  if (!summaryEl || !bodyEl) return;
+
+  if (!g) {
+    setHTML(summaryEl, 'Method Guide (Click to expand)');
+    setHTML(bodyEl, '<p class="hint">Select a method.</p>');
+    if (detailsEl) {
+      detailsEl.removeAttribute('open');
+    }
+    return;
+  }
+
+  // Format body similar to the old msgCard helper
+  let bodyString = Array.isArray(g.body) ? g.body.join('<br>') : g.body;
+  bodyString = bodyString.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+  const bodyHTML = `<p class="hint">${bodyString}</p>`;
+
+  // Inject the formatted content
+  setHTML(summaryEl, `<strong>${g.title}</strong> (Click to expand)`);
+  setHTML(bodyEl, bodyHTML);
+
+  // Ask MathJax to typeset the new content
+  if (window.MathJax && window.MathJax.typesetPromise) {
+    window.MathJax.typesetPromise([summaryEl, bodyEl]);
   }
 }
 
-/* ================= INITIALIZATION ================= */
-function populateAndInit() {
-  Promise.all([
-    fetch('guides.json').then(r=>r.json()),
-    fetch('pseudocode.json').then(r=>r.json())
-  ]).then(([guides, pseudo]) => {
-    ALL_GUIDES = guides;
-    ALL_PSEUDO = pseudo;
-    
-    // Setup Buttons
-    document.querySelectorAll('.btn-run').forEach(b => b.addEventListener('click', (e) => {
-        const btn = e.target;
-        const ogText = btn.innerText;
-        btn.innerText = "Running..."; btn.disabled = true;
-        setTimeout(() => {
-            try {
-                clearAllAlerts();
-                if(appMode==='root') runRoot();
-                else if(appMode==='direct') runDirect();
-                else if(appMode==='iterative') runIterative();
-                else if(appMode==='interpolation') runInterpolation();
-            } catch(e) { console.error(e); }
-            finally { btn.innerText = ogText; btn.disabled = false; }
-        }, 50);
-    }));
-    
-    document.querySelectorAll('.btn-reset').forEach(b => b.addEventListener('click', resetInputs));
+// Main function to switch between app categories (Root, Direct, etc.)
+function setMode(newMode) {
+  appMode = newMode;
+  const isGrapher = newMode === 'grapher';
 
-    // Setup Tabs
-    tabRoot.addEventListener('click', ()=>setMode('root'));
-    tabDirect.addEventListener('click', ()=>setMode('direct'));
-    tabIterative.addEventListener('click', ()=>setMode('iterative'));
-    tabInterpolation.addEventListener('click', ()=>setMode('interpolation'));
-    tabGrapher.addEventListener('click', ()=>setMode('grapher'));
-    
-    methodSelect.addEventListener('change', () => { showGuide(); syncVisibility(); });
-    
-    // Init
-    setMode('root');
-    document.getElementById('pseudoBtn').classList.remove('hidden');
-    document.getElementById('pseudoBtn').addEventListener('click', () => {
-        const m = methodSelect.value;
-        const data = ALL_PSEUDO[m];
-        document.getElementById('pseudoBody').innerHTML = data ? data.join('<br>') : 'No code available.';
-        document.getElementById('pseudoModal').classList.remove('hidden');
-    });
-    document.getElementById('closePseudoBtn').addEventListener('click', () => document.getElementById('pseudoModal').classList.add('hidden'));
+  // Toggle panel visibility
+  rootPanel.classList.toggle('hidden', newMode !== 'root');
+  directSystemPanel.classList.toggle('hidden', newMode !== 'direct');
+  iterativeSystemPanel.classList.toggle('hidden', newMode !== 'iterative');
+  interpolationPanel.classList.toggle('hidden', newMode !== 'interpolation');
+  grapherPanel.classList.toggle('hidden', !isGrapher);
 
-  }).catch(e => console.error("Failed to load resources", e));
+  // Toggle tab button styles
+  const tabs = [tabRoot, tabDirect, tabIterative, tabInterpolation, tabGrapher];
+  const modes = ['root', 'direct', 'iterative', 'interpolation', 'grapher'];
+
+  tabs.forEach((tab, i) => {
+      const isActive = (modes[i] === newMode);
+      tab.classList.toggle('btn-primary', isActive);
+      tab.classList.toggle('btn-soft', !isActive);
+      tab.setAttribute('aria-pressed', isActive);
+  });
+
+  // Repopulate the method dropdown for the new mode
+  if (!isGrapher) {
+    if (guideBox && guideBox.parentElement) guideBox.parentElement.classList.remove('hidden');
+    if (methodSelectGroup) methodSelectGroup.classList.remove('hidden');
+    populateMethodsFor(newMode);
+    syncVisibility(); // Ensure correct inputs are shown
+  } else {
+    if (guideBox && guideBox.parentElement) guideBox.parentElement.classList.add('hidden');
+    if (methodSelectGroup) methodSelectGroup.classList.add('hidden');
+    methodSelect.innerHTML = '';
+  }
+  clearAllAlerts(); // Clear status when changing modes
+  clearAllOutputs();
 }
 
-// Helper for modal help
-document.getElementById('helpBtn').addEventListener('click', () => document.getElementById('helpModal').classList.remove('hidden'));
-document.getElementById('closeHelpBtn').addEventListener('click', () => document.getElementById('helpModal').classList.add('hidden'));
+// Show/hide specific input fields based on the selected method
+  function syncVisibility() {
+    const m = methodSelect.value;
+  
+    // --- 1. Toggle field visibility ---
+    gxGroup.classList.toggle('hidden', m !== 'fixedPoint');
+    dfGroup.classList.toggle('hidden', m !== 'newton_root' && m !== 'multiple');
+    d2fGroup.classList.toggle('hidden', m !== 'multiple');
+    deltaGroup.classList.toggle('hidden', m !== 'incremental');
+    x1Col.classList.toggle('hidden', m !== 'secant');
+    tableBoxRoot.classList.toggle('hidden', m === 'incremental');
+    wGroupIter.classList.toggle('hidden', m !== 'sor');
+  
+    // --- 2. Set default inputs based on method ---
+    // We must check the *mode* first, so we don't mess up other panels
+    if (appMode === 'root') {
+        
+        // First, set the "master" defaults (for Bisection/Newton)
+        fxInput.value = "log(sin(x)**2 + 1) - 0.5";
+        gxInput.value = "log(sin(x)**2 + 1) - 0.5";
+        dfInput.value = "2*(sin(x)**2+1)**(-1)*sin(x)*cos(x)";
+        d2fInput.value = "exp(x)";
+        aInput.value = "0";
+        bInput.value = "1";
+        x0Input.value = "0.5";
+        x1Input.value = "1";
 
-// Start
+        // Now, override for specific methods
+        if (m === 'multiple') {
+          // Cargar inputs de ejemplo para Raíces Múltiples (h(x)) [cite: 3802, 3809]
+          fxInput.value = "exp(x) - x - 1";
+          dfInput.value = "exp(x) - 1";
+          d2fInput.value = "exp(x)";
+          x0Input.value = "1";
+          aInput.value = "-1"; // Un intervalo que contenga la raíz 0
+          bInput.value = "2";
+        } else if (m === 'fixedPoint') {
+          // Cargar inputs de ejemplo para Punto Fijo (f1(x), g(x)) 
+          fxInput.value = "log(sin(x)**2 + 1) - 0.5 - x"; // f1(x)
+          gxInput.value = "log(sin(x)**2 + 1) - 0.5";     // g(x)
+          x0Input.value = "-0.5";                         // x0 [cite: 3807]
+          aInput.value = "-1";                            // Intervalo bueno para -0.374...
+          bInput.value = "0";
+        }
+    }
+  
+    // --- 3. Show the guide ---
+    showGuide();
+  }
+
+// Resets all inputs in the currently active panel to their defaults
+function resetInputs() {
+    clearAllAlerts();
+    if (appMode === 'root') {
+        // --- Valores por defecto de Prueba_métodos.pdf (Bisección/Newton) ---
+        fxInput.value = "log(sin(x)**2 + 1) - 0.5";     // f(x)
+        gxInput.value = "log(sin(x)**2 + 1) - 0.5";     // g(x)
+        aInput.value = "0";                             // a (Bisección/Regla Falsa) [cite: 2956, 2957]
+        bInput.value = "1";                             // b (Bisección/Regla Falsa) [cite: 2956, 2957]
+        x0Input.value = "0.5";                          // x0 (Newton)
+        x1Input.value = "1";                            // x1 (Secante) [cite: 2960]
+        tolInput.value = "1e-7";                        // Tolerancia estándar [cite: 2951]
+        kmaxInput.value = "100";                        // N estándar [cite: 2951]
+        deltaInput.value = "0.5";                       // Delta para Búsquedas Incr. [cite: 2955]
+        nmaxInput.value = "100";
+        dfInput.value = "exp(x) - 1";                   // h'(x) para Raíces Múltiples
+        d2fInput.value = "exp(x)";                      // h''(x) para Raíces Múltiples
+        setHTML(summaryBoxRoot, ''); setHTML(iterTableRoot, ''); setHTML(bracketBox, '');
+        Plotly.purge(plotDiv);
+    } else if (appMode === 'direct') {
+        // --- Valores por defecto (Matriz Simétrica 3x3) ---
+        AInputDirect.value = "4 1 1\n1 3 2\n1 2 5";
+        bVecInputDirect.value = "1 1 1";
+        setHTML(summaryDirect, ''); setHTML(resultsDirect, '');
+        stepsBox.classList.add('hidden');
+    } else if (appMode === 'iterative') {
+        // --- Valores por defecto de Prueba_métodos2.pdf ---
+        AInputIter.value = "4 -1 0 3\n1 15.5 3 8\n0 -1.3 -4 1.1\n14 5 -2 30"; // [cite: 74]
+        bVecInputIter.value = "1 1 1 1";
+        x0InputIter.value = "0 0 0 0";
+        tolInputIter.value = "1e-7"; // [cite: 75]
+        nmaxInputIter.value = "100"; // [cite: 75]
+        wInputIter.value = "1.5";
+        setHTML(summaryIter, ''); setHTML(spectralRadiusBox, ''); setHTML(iterTableIterative, '');
+    } else if (appMode === 'interpolation') {
+        // --- Valores por defecto de Prueba_métodos2.pdf ---
+        pointsInput.value = "-1, 15.5\n0, 3\n3, 8\n4, 1";
+        setHTML(summaryInter, ''); setHTML(resultsInter, '');
+        Plotly.purge(plotInter);
+    }
+}
+
+/* ================= Event Listeners ================= */
+tabRoot.addEventListener('click', () => setMode('root'));
+tabDirect.addEventListener('click', () => setMode('direct'));
+tabIterative.addEventListener('click', () => setMode('iterative'));
+tabInterpolation.addEventListener('click', () => setMode('interpolation'));
+tabGrapher.addEventListener('click', () => setMode('grapher'));
+methodSelect.addEventListener('change', syncVisibility);
+
+/* ================= Init ================= */
+/* REEMPLAZAR 'populateAndInit' COMPLETA */
+function populateAndInit() {
+  // Cargar ambos archivos JSON en paralelo
+  Promise.all([
+    fetch('guides.json').then(res => {
+      if (!res.ok) throw new Error('guides.json failed to load');
+      return res.json();
+    }),
+    fetch('pseudocode.json').then(res => {
+      if (!res.ok) throw new Error('pseudocode.json failed to load');
+      return res.json();
+    })
+  ])
+  .then(([guidesData, pseudoData]) => {
+    ALL_GUIDES = guidesData;
+    ALL_PSEUDO = pseudoData;
+// --- Añadir Listeners de Botones ---
+document.querySelectorAll('.btn-run').forEach(button => {
+  button.addEventListener('click', () => {
+    button.textContent = 'Running...';
+    button.disabled = true;
+
+    setTimeout(() => {
+      try {
+        clearAllAlerts();
+        if (appMode === 'root') runRoot();
+        else if (appMode === 'direct') runDirect();
+        else if (appMode === 'iterative') runIterative();
+        else if (appMode === 'interpolation') runInterpolation();
+      } finally {
+        button.textContent = 'Run';
+        button.disabled = false;
+      }
+    }, 10);
+  });
+});
+document.querySelectorAll('.btn-reset').forEach(button => {
+  button.addEventListener('click', resetInputs);
+});
+// Listener para el botón Plot
+gPlotBtn.addEventListener('click', runGrapher);
+// Iniciar la app
+deepLink.classList.add('hidden');
+setMode('root');
+renderHistory();
+}) .catch(error => { console.error('Error loading JSON files:', error); const detailsEl = document.getElementById('guideBox'); const summaryEl = document.getElementById('guideSummary'); const bodyEl = document.getElementById('guideBody'); setHTML(summaryEl, 'Error Fatal'); setHTML(bodyEl, `<p class="hint">No se pudieron cargar los archivos de configuración. ${error.message}.</p>`); detailsEl.setAttribute('open', ''); }); }
 populateAndInit();
 </script>
 </body>
